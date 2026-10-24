@@ -32,14 +32,14 @@
     return { text: `En ${diff} días (${dateStr})`, cls: 'deadline-calm' };
   }
 
-  // Datos iniciales de bienvenida
+  // Datos iniciales de bienvenida (sin sesiones previas: la racha empieza en 0)
   function createDefaultState() {
     const today = new Date();
-    const yesterdayKey = toDateKey(addDays(today, -1));
-    const twoDaysAgoKey = toDateKey(addDays(today, -2));
+    const todayKey = toDateKey(today);
 
     return {
       theme: 'dark',
+      createdAtDate: todayKey,
       // Días de enfoque (1=Lunes ... 5=Viernes enfocando; 6=Sábado, 0=Domingo descanso sin culpa)
       focusDaysOfWeek: [1, 2, 3, 4, 5],
       // Días específicos marcados manualmente como Pausa Mental (YYYY-MM-DD)
@@ -56,12 +56,12 @@
         {
           id: 'tsk-1',
           folderId: 'fld-1',
-          title: 'Examen Parcial · Unidad 2',
+          title: 'Examen Parcial · Unidad 2 (Ejemplo)',
           type: 'Examen',
           dueDate: toDateKey(addDays(today, 4)),
-          minutesStudied: 50,
+          minutesStudied: 0,
           subtasks: [
-            { id: 'sub-1', title: 'Repasar apuntes y fórmulas clave', done: true },
+            { id: 'sub-1', title: 'Repasar apuntes y fórmulas clave', done: false },
             { id: 'sub-2', title: 'Resolver guía de ejercicios prácticos', done: false },
             { id: 'sub-3', title: 'Hacer autoevaluación cronometrada', done: false }
           ]
@@ -69,37 +69,18 @@
         {
           id: 'tsk-2',
           folderId: 'fld-2',
-          title: 'Entrega de Proyecto Integrador',
+          title: 'Entrega de Proyecto Integrador (Ejemplo)',
           type: 'Proyecto',
           dueDate: toDateKey(addDays(today, 9)),
-          minutesStudied: 60,
+          minutesStudied: 0,
           subtasks: [
-            { id: 'sub-4', title: 'Definir estructura y objetivos', done: true },
-            { id: 'sub-5', title: 'Desarrollar prototipo funcional', done: true },
+            { id: 'sub-4', title: 'Definir estructura y objetivos', done: false },
+            { id: 'sub-5', title: 'Desarrollar prototipo funcional', done: false },
             { id: 'sub-6', title: 'Preparar diapositivas de presentación', done: false }
           ]
         }
       ],
-      sessions: [
-        {
-          id: 'ses-1',
-          taskId: 'tsk-1',
-          folderId: 'fld-1',
-          date: twoDaysAgoKey,
-          minutes: 25,
-          mode: 'Pomodoro',
-          timestamp: Date.now() - 172800000
-        },
-        {
-          id: 'ses-2',
-          taskId: 'tsk-2',
-          folderId: 'fld-2',
-          date: yesterdayKey,
-          minutes: 60,
-          mode: 'Deep Focus',
-          timestamp: Date.now() - 86400000
-        }
-      ]
+      sessions: []
     };
   }
 
@@ -117,19 +98,46 @@
     lastTickAt: null
   };
 
+  // Limpia las sesiones de demostración (ses-1, ses-2) si provenían de la plantilla inicial
+  function cleanDemoSessionsIfNeeded(loadedState) {
+    if (!loadedState) return loadedState;
+    const hadDemoSessions =
+      Array.isArray(loadedState.sessions) &&
+      loadedState.sessions.some((s) => s.id === 'ses-1' || s.id === 'ses-2');
+
+    if (hadDemoSessions) {
+      loadedState.sessions = loadedState.sessions.filter(
+        (s) => s.id !== 'ses-1' && s.id !== 'ses-2'
+      );
+      if (loadedState.sessions.length === 0 && Array.isArray(loadedState.tasks)) {
+        loadedState.tasks.forEach((t) => {
+          if (t.id === 'tsk-1' || t.id === 'tsk-2') {
+            t.minutesStudied = 0;
+          }
+        });
+      }
+    }
+    if (!loadedState.createdAtDate) {
+      loadedState.createdAtDate = toDateKey(new Date());
+    }
+    return loadedState;
+  }
+
   // Carga y Guardado Persistente
   async function loadAppState() {
     try {
       if (window.desktopAPI && window.desktopAPI.loadData) {
         const diskData = await window.desktopAPI.loadData();
         if (diskData && diskData.folders) {
-          state = Object.assign(createDefaultState(), diskData);
+          state = cleanDemoSessionsIfNeeded(Object.assign(createDefaultState(), diskData));
+          await saveAppState();
           return;
         }
       }
       const localRaw = localStorage.getItem(STORAGE_KEY);
       if (localRaw) {
-        state = Object.assign(createDefaultState(), JSON.parse(localRaw));
+        state = cleanDemoSessionsIfNeeded(Object.assign(createDefaultState(), JSON.parse(localRaw)));
+        await saveAppState();
       }
     } catch (e) {
       console.error('Error loading state:', e);
@@ -180,11 +188,21 @@
     const todayMinutes = getMinutesOnDate(todayKey);
     const isTodayRest = !isDayScheduledForFocus(today);
 
-    // Evaluar salud en los últimos 10 días
-    let health = 78;
+    // Determinar desde qué fecha empezó el usuario a usar la app
+    let startDateKey = state.createdAtDate || todayKey;
+    state.sessions.forEach((s) => {
+      if (s.date && s.date < startDateKey) {
+        startDateKey = s.date;
+      }
+    });
+
+    // Evaluar salud en los últimos 10 días (solo contando desde que inició la app)
+    let health = 80;
     for (let i = 10; i >= 1; i--) {
       const d = addDays(today, -i);
       const key = toDateKey(d);
+      if (key < startDateKey) continue; // No penalizar días previos a instalar/usar la app
+
       const mins = getMinutesOnDate(key);
       const scheduled = isDayScheduledForFocus(d);
 
@@ -202,23 +220,27 @@
       health = Math.min(100, Math.max(68, health + 20));
     }
 
-    // Calcular racha saludable (días de enfoque cumplidos consecutivos + bonus en días libres)
+    // Calcular racha saludable (se construye a medida que usas la aplicación)
     let streak = 0;
-    for (let i = 0; i < 60; i++) {
-      const d = addDays(today, -i);
-      const key = toDateKey(d);
-      const mins = getMinutesOnDate(key);
-      const scheduled = isDayScheduledForFocus(d);
+    if (state.sessions.length > 0) {
+      for (let i = 0; i < 60; i++) {
+        const d = addDays(today, -i);
+        const key = toDateKey(d);
+        if (key < startDateKey) break;
 
-      if (mins > 0) {
-        streak++;
-      } else if (!scheduled) {
-        // Día de descanso: no rompe la racha
-        continue;
-      } else {
-        // Si es hoy y aún no estudia, no rompe la racha de ayer todavía
-        if (i === 0) continue;
-        break;
+        const mins = getMinutesOnDate(key);
+        const scheduled = isDayScheduledForFocus(d);
+
+        if (mins > 0) {
+          streak++;
+        } else if (!scheduled) {
+          // Día de descanso: no rompe la racha
+          continue;
+        } else {
+          // Si es hoy y aún no estudia, no rompe la racha de ayer todavía
+          if (i === 0) continue;
+          break;
+        }
       }
     }
 
