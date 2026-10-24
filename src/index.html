@@ -92,9 +92,14 @@
         </div>
       </div>
 
-      <!-- Mezclador rápido de sonidos ambientales -->
+      <!-- Mezclador rápido de sonidos ambientales + YouTube / Spotify -->
       <div class="sidebar-card sound-dock">
-        <div class="dock-title">🎧 Ambiente de Estudio</div>
+        <div class="dock-title-row">
+          <span class="dock-title">🎧 Ambiente de Estudio</span>
+          <button id="btnOpenMediaModal" class="btn-media-link" title="Vincular o elegir música de YouTube y Spotify">
+            🎵 YouTube / Spotify
+          </button>
+        </div>
         <div class="sound-buttons">
           <button class="sound-btn" data-sound="rain" title="Lluvia suave">🌧️ Lluvia</button>
           <button class="sound-btn" data-sound="brown" title="Ruido cálido de concentración">☕ Ruido Cálido</button>
@@ -103,6 +108,18 @@
         <div class="volume-row">
           <span>🔉</span>
           <input type="range" id="soundVolume" min="0" max="100" value="45" />
+        </div>
+
+        <!-- Reproductor embebido de YouTube / Spotify en vivo -->
+        <div id="sidebarMediaEmbedBox" class="media-embed-box hidden">
+          <div class="media-embed-bar">
+            <span id="sidebarMediaTitle" class="media-embed-title">🎵 Reproduciendo</span>
+            <div class="media-embed-actions">
+              <button id="btnPopoutMedia" class="media-mini-btn" title="Abrir en ventana independiente con inicio de sesión">↗️</button>
+              <button id="btnCloseMediaEmbed" class="media-mini-btn" title="Cerrar reproductor">✕</button>
+            </div>
+          </div>
+          <div id="sidebarMediaIframeHolder" class="media-iframe-holder"></div>
         </div>
       </div>
     </aside>
@@ -483,6 +500,52 @@
           <button type="submit" class="btn-primary">Guardar y Nutrir Árbol</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Vincular YouTube y Spotify -->
+  <div id="modalMedia" class="modal-backdrop hidden">
+    <div class="modal-box modal-media-box">
+      <div class="modal-header">
+        <h3>🎵 Ambiente Personalizado · YouTube y Spotify</h3>
+        <button class="modal-close" data-close="modalMedia">✕</button>
+      </div>
+      <p style="font-size:12.5px;color:var(--text-secondary);margin-bottom:12px;">
+        Pega cualquier enlace de <strong>YouTube</strong> (video, radio lofi en vivo o lista) o de <strong>Spotify</strong> (playlist, álbum o canción) para escucharlo mientras estudias, o abre tus cuentas completas.
+      </p>
+
+      <!-- Botones rápidos para abrir cuentas completas con sesión guardada -->
+      <div class="media-platform-buttons">
+        <button type="button" id="btnLaunchSpotifyApp" class="platform-btn spotify-btn">
+          🟢 Abrir Spotify Web (Iniciar sesión)
+        </button>
+        <button type="button" id="btnLaunchYouTubeApp" class="platform-btn youtube-btn">
+          🔴 Abrir YouTube / YT Music
+        </button>
+      </div>
+
+      <form id="formCustomMedia" class="custom-media-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="mediaTitleInput">Nombre para guardar (opcional)</label>
+            <input type="text" id="mediaTitleInput" placeholder="Ej. Mi Playlist Lofi, Jazz de Lluvia..." />
+          </div>
+          <div class="form-group">
+            <label for="mediaUrlInput">Enlace de YouTube o Spotify</label>
+            <input type="text" id="mediaUrlInput" required placeholder="https://open.spotify.com/playlist/... o https://youtu.be/..." />
+          </div>
+        </div>
+        <div class="modal-actions" style="margin-top:4px;margin-bottom:14px;">
+          <button type="submit" class="btn-primary btn-sm">▶ Reproducir y Guardar en mis ambientes</button>
+        </div>
+      </form>
+
+      <div class="saved-media-section">
+        <label style="font-size:12px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:8px;">
+          ⭐ Ambientes listos para usar (haz clic para escuchar en la barra lateral):
+        </label>
+        <div id="savedMediaList" class="saved-media-list"></div>
+      </div>
     </div>
   </div>
 

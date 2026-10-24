@@ -104,29 +104,54 @@ class CozySoundEngine {
   }
 
   startBrownNoise() {
-    const bufferSize = 2 * this.ctx.sampleRate;
+    // Ruido Cálido de Estudio (mezcla de ruido marrón-rosado audible en altavoces + calidez de chimenea/vinilo suave)
+    const bufferSize = 3 * this.ctx.sampleRate;
     const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
     const output = noiseBuffer.getChannelData(0);
-    let lastOut = 0.0;
+
+    let b0 = 0, b1 = 0, b2 = 0, lastBrown = 0;
     for (let i = 0; i < bufferSize; i++) {
       const white = Math.random() * 2 - 1;
-      output[i] = (lastOut + 0.02 * white) / 1.02;
-      lastOut = output[i];
-      output[i] *= 0.18;
+      // Componente marrón (profundo)
+      lastBrown = (lastBrown + 0.045 * white) / 1.045;
+      // Componente rosado cálido (cuerpo audible en cualquier altavoz o audífono)
+      b0 = 0.997 * b0 + white * 0.029;
+      b1 = 0.985 * b1 + white * 0.042;
+      b2 = 0.940 * b2 + white * 0.068;
+      const warmPink = b0 + b1 + b2;
+
+      // Sutil crepitar cálido tipo vinilo/chimenea
+      const crackle = Math.random() > 0.9992 ? (Math.random() * 0.35 - 0.175) : 0;
+
+      output[i] = Math.max(-0.95, Math.min(0.95, lastBrown * 1.35 + warmPink * 0.45 + crackle));
     }
 
-    const brownNoise = this.ctx.createBufferSource();
-    brownNoise.buffer = noiseBuffer;
-    brownNoise.loop = true;
+    const warmSource = this.ctx.createBufferSource();
+    warmSource.buffer = noiseBuffer;
+    warmSource.loop = true;
 
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 480;
+    // Filtro paso-bajo cálido pero con presencia clara en medios-bajos (720 Hz)
+    const lowpass = this.ctx.createBiquadFilter();
+    lowpass.type = 'lowpass';
+    lowpass.frequency.value = 720;
 
-    brownNoise.connect(filter);
-    filter.connect(this.masterGain);
-    brownNoise.start(0);
-    this.nodes.push(brownNoise, filter);
+    // Realce cálido en 260 Hz para darle cuerpo acogedor
+    const warmthBoost = this.ctx.createBiquadFilter();
+    warmthBoost.type = 'peaking';
+    warmthBoost.frequency.value = 260;
+    warmthBoost.Q.value = 0.9;
+    warmthBoost.gain.value = 5.5;
+
+    const warmGain = this.ctx.createGain();
+    warmGain.gain.value = 0.95;
+
+    warmSource.connect(warmthBoost);
+    warmthBoost.connect(lowpass);
+    lowpass.connect(warmGain);
+    warmGain.connect(this.masterGain);
+
+    warmSource.start(0);
+    this.nodes.push(warmSource, warmthBoost, lowpass, warmGain);
   }
 
   startZenPad() {

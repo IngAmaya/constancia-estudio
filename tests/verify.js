@@ -73,4 +73,12 @@ assert.ok(preloadSource.includes('checkForUpdates'), 'preload.js debe exponer ch
 assert.ok(appSource.includes('initAutoUpdaterUI'), 'src/app.js debe inicializar la UI de auto-actualización');
 console.log('  ✓ Sistema de auto-actualización estilo Discord (GitHub Releases) verificado');
 
+// 5. Verificar Ruido Cálido mejorado, Edición de Carpetas y Vinculación YouTube/Spotify
+const soundSource = fs.readFileSync(path.join(ROOT, 'src/sound-engine.js'), 'utf-8');
+assert.ok(soundSource.includes('warmthBoost'), 'startBrownNoise() debe incluir realce cálido audible (warmthBoost)');
+assert.ok(appSource.includes('folder-edit-btn') && appSource.includes('editingId'), 'src/app.js debe permitir editar carpetas existentes');
+assert.ok(appSource.includes('parseMediaUrlToEmbed') && appSource.includes('playEmbeddedMedia'), 'src/app.js debe incluir integración con YouTube y Spotify');
+assert.ok(mainSource.includes("ipcMain.handle('media:openWindow'"), 'main.js debe exponer media:openWindow');
+console.log('  ✓ Ruido Cálido mejorado, Edición de Carpetas (✏️) y Reproductor YouTube/Spotify verificados');
+
 console.log('\n✅ TODAS LAS PRUEBAS PASARON EXITOSAMENTE.');

@@ -15,5 +15,6 @@ contextBridge.exposeInMainWorld('desktopAPI', {
   installAndRestart: () => ipcRenderer.invoke('updater:installAndRestart'),
   onUpdateProgress: (callback) => {
     ipcRenderer.on('updater:progress', (_event, data) => callback(data));
-  }
+  },
+  openMediaWindow: (payload) => ipcRenderer.invoke('media:openWindow', payload)
 });

@@ -80,7 +80,33 @@
           ]
         }
       ],
-      sessions: []
+      sessions: [],
+      savedMedia: [
+        {
+          id: 'med-1',
+          title: '🎧 Spotify · Deep Focus',
+          url: 'https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ',
+          platform: 'spotify'
+        },
+        {
+          id: 'med-2',
+          title: '🎹 Spotify · Peaceful Piano',
+          url: 'https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO',
+          platform: 'spotify'
+        },
+        {
+          id: 'med-3',
+          title: '📺 YouTube · Lofi Hip Hop Radio',
+          url: 'https://www.youtube.com/watch?v=jfKfPfyJRdk',
+          platform: 'youtube'
+        },
+        {
+          id: 'med-4',
+          title: '🎷 YouTube · Jazz Suave de Estudio',
+          url: 'https://www.youtube.com/watch?v=DSGyEsJ17cI',
+          platform: 'youtube'
+        }
+      ]
     };
   }
 
@@ -119,6 +145,9 @@
     }
     if (!loadedState.createdAtDate) {
       loadedState.createdAtDate = toDateKey(new Date());
+    }
+    if (!Array.isArray(loadedState.savedMedia) || loadedState.savedMedia.length === 0) {
+      loadedState.savedMedia = createDefaultState().savedMedia;
     }
     return loadedState;
   }
@@ -625,16 +654,24 @@
       card.innerHTML = `
         <div class="folder-chip-top">
           <span class="folder-icon-badge">${folder.icon}</span>
-          <button class="folder-delete-btn" title="Eliminar carpeta">✕</button>
+          <div class="folder-chip-actions">
+            <button class="folder-edit-btn" title="Editar nombre, icono o color de la carpeta">✏️</button>
+            <button class="folder-delete-btn" title="Eliminar carpeta">✕</button>
+          </div>
         </div>
         <div class="folder-name">${folder.name}</div>
         <div class="folder-meta">${folderTasks.length} entregas · ${(folderMins / 60).toFixed(1)} h</div>
       `;
 
       card.addEventListener('click', (e) => {
-        if (e.target.closest('.folder-delete-btn')) return;
+        if (e.target.closest('.folder-delete-btn') || e.target.closest('.folder-edit-btn')) return;
         state.selectedFolderFilter = folder.id;
         renderSubjectsView();
+      });
+
+      card.querySelector('.folder-edit-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        openFolderModal(folder);
       });
 
       card.querySelector('.folder-delete-btn').addEventListener('click', () => {
@@ -736,7 +773,10 @@
 
         <div class="task-card-actions">
           <button class="btn-primary btn-sm" data-focus-task="${task.id}">🎯 Concentrarme en esto</button>
-          <button class="btn-ghost btn-sm" data-delete-task="${task.id}">Eliminar</button>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-ghost btn-sm" data-edit-task="${task.id}" title="Editar actividad">✏️</button>
+            <button class="btn-ghost btn-sm" data-delete-task="${task.id}">Eliminar</button>
+          </div>
         </div>
       `;
 
@@ -785,6 +825,11 @@
         document.getElementById('timerTaskSelect').value = task.id;
         renderActiveTimerSubtasks();
         showToast(`🎯 Reloj listo para: ${task.title}`);
+      });
+
+      // Editar tarea
+      card.querySelector(`[data-edit-task="${task.id}"]`).addEventListener('click', () => {
+        openTaskModal(task);
       });
 
       // Eliminar tarea
@@ -989,13 +1034,31 @@
     });
   }
 
-  // Apertura de Modales
-  function openFolderModal() {
-    document.getElementById('formFolder').reset();
+  // Apertura de Modales (Crear y Editar Carpetas / Exámenes / Música)
+  function openFolderModal(folder = null) {
+    const form = document.getElementById('formFolder');
+    form.reset();
+    const titleEl = document.getElementById('modalFolderTitle');
+    const idInput = document.getElementById('folderIdInput');
+    const nameInput = document.getElementById('folderNameInput');
+    const iconInput = document.getElementById('folderIconInput');
+    const colorInput = document.getElementById('folderColorInput');
+
+    if (folder && folder.id) {
+      titleEl.textContent = '✏️ Editar Carpeta de Materia';
+      idInput.value = folder.id;
+      nameInput.value = folder.name || '';
+      iconInput.value = folder.icon || '📘';
+      colorInput.value = folder.color || '#34d399';
+    } else {
+      titleEl.textContent = 'Nueva Carpeta de Materia';
+      idInput.value = '';
+      colorInput.value = '#34d399';
+    }
     document.getElementById('modalFolder').classList.remove('hidden');
   }
 
-  function openTaskModal() {
+  function openTaskModal(task = null) {
     const select = document.getElementById('taskFolderSelect');
     select.innerHTML = '';
     state.folders.forEach((f) => {
@@ -1004,13 +1067,192 @@
       opt.textContent = `${f.icon} ${f.name}`;
       select.appendChild(opt);
     });
-    if (state.selectedFolderFilter !== 'all') {
-      select.value = state.selectedFolderFilter;
+
+    const heading = document.getElementById('modalTaskHeading');
+    const idInput = document.getElementById('taskIdInput');
+    const titleInput = document.getElementById('taskTitleInput');
+    const typeSelect = document.getElementById('taskTypeSelect');
+    const dueInput = document.getElementById('taskDueDateInput');
+    const subsTextarea = document.getElementById('taskSubtasksTextarea');
+
+    if (task && task.id) {
+      heading.textContent = '✏️ Editar Examen o Proyecto';
+      idInput.value = task.id;
+      select.value = task.folderId;
+      titleInput.value = task.title || '';
+      typeSelect.value = task.type || 'Examen';
+      dueInput.value = task.dueDate || toDateKey(addDays(new Date(), 7));
+      subsTextarea.value = (task.subtasks || []).map((s) => s.title).join('\n');
+    } else {
+      heading.textContent = 'Nuevo Examen o Proyecto';
+      idInput.value = '';
+      if (state.selectedFolderFilter !== 'all') {
+        select.value = state.selectedFolderFilter;
+      }
+      titleInput.value = '';
+      typeSelect.value = 'Examen';
+      dueInput.value = toDateKey(addDays(new Date(), 7));
+      subsTextarea.value = '';
     }
-    document.getElementById('taskTitleInput').value = '';
-    document.getElementById('taskDueDateInput').value = toDateKey(addDays(new Date(), 7));
-    document.getElementById('taskSubtasksTextarea').value = '';
     document.getElementById('modalTask').classList.remove('hidden');
+  }
+
+  // --- Integración con YouTube y Spotify ---
+  let currentActiveMedia = null;
+
+  function parseMediaUrlToEmbed(rawUrl) {
+    const url = String(rawUrl || '').trim();
+    if (!url) return null;
+
+    // 1. Detectar enlaces de Spotify (playlist, album, track, episode, show)
+    const spotifyMatch = url.match(
+      /open\.spotify\.com\/(?:intl-[a-z]+\/)?(playlist|album|track|episode|show)\/([a-zA-Z0-9]+)/i
+    );
+    if (spotifyMatch) {
+      const type = spotifyMatch[1].toLowerCase();
+      const id = spotifyMatch[2];
+      return {
+        platform: 'spotify',
+        embedUrl: `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0`,
+        externalUrl: `https://open.spotify.com/${type}/${id}`,
+        height: 152
+      };
+    }
+
+    // 2. Detectar enlaces de YouTube (watch?v=, youtu.be/, live/, embed/, playlist?list=)
+    const ytListMatch = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+    const ytVideoMatch =
+      url.match(/(?:youtube\.com\/(?:watch\?v=|live\/|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/) ||
+      url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+
+    if (ytVideoMatch) {
+      const videoId = ytVideoMatch[1];
+      return {
+        platform: 'youtube',
+        embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`,
+        externalUrl: `https://www.youtube.com/watch?v=${videoId}`,
+        height: 155
+      };
+    }
+
+    if (ytListMatch) {
+      const listId = ytListMatch[1];
+      return {
+        platform: 'youtube',
+        embedUrl: `https://www.youtube-nocookie.com/embed/videoseries?list=${listId}&autoplay=1`,
+        externalUrl: `https://www.youtube.com/playlist?list=${listId}`,
+        height: 155
+      };
+    }
+
+    // 3. Cualquier otro enlace válido de YouTube Music / Spotify / Web se abre o embebe
+    if (/^https?:\/\//i.test(url)) {
+      return {
+        platform: 'web',
+        embedUrl: null,
+        externalUrl: url,
+        height: 155
+      };
+    }
+
+    return null;
+  }
+
+  function playEmbeddedMedia(item) {
+    const parsed = parseMediaUrlToEmbed(item.url);
+    if (!parsed) {
+      showToast('⚠️ Enlace no válido. Pega una URL de YouTube o Spotify.');
+      return;
+    }
+
+    // Detener sonido sintético si estaba activo para no encimar audios
+    if (window.soundEngine && window.soundEngine.activeSound !== 'none') {
+      window.soundEngine.stopAmbient();
+      document.querySelectorAll('.sound-btn').forEach((b) => b.classList.remove('active'));
+    }
+
+    currentActiveMedia = {
+      title: item.title || '🎵 Ambiente personalizado',
+      url: item.url,
+      externalUrl: parsed.externalUrl
+    };
+
+    if (!parsed.embedUrl) {
+      if (window.desktopAPI && window.desktopAPI.openMediaWindow) {
+        window.desktopAPI.openMediaWindow({
+          url: parsed.externalUrl,
+          title: currentActiveMedia.title
+        });
+        showToast(`🎵 Abriendo ${currentActiveMedia.title} en reproductor...`);
+      }
+      return;
+    }
+
+    const box = document.getElementById('sidebarMediaEmbedBox');
+    const titleEl = document.getElementById('sidebarMediaTitle');
+    const holder = document.getElementById('sidebarMediaIframeHolder');
+
+    titleEl.textContent = currentActiveMedia.title;
+    holder.innerHTML = `
+      <iframe
+        src="${parsed.embedUrl}"
+        height="${parsed.height}"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy"
+        referrerpolicy="strict-origin-when-cross-origin"
+      ></iframe>
+    `;
+    box.classList.remove('hidden');
+  }
+
+  function renderSavedMediaList() {
+    const listEl = document.getElementById('savedMediaList');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+
+    (state.savedMedia || []).forEach((item) => {
+      const row = document.createElement('div');
+      row.className = 'saved-media-item';
+      const badgeIcon =
+        item.platform === 'spotify' ? '🟢' : item.platform === 'youtube' ? '🔴' : '🎵';
+      row.innerHTML = `
+        <div class="saved-media-info" title="Haz clic para reproducir en la barra lateral">
+          <span>${badgeIcon}</span>
+          <strong>${item.title}</strong>
+        </div>
+        <div class="saved-media-btns">
+          <button type="button" class="btn-primary btn-sm" data-play-media="${item.id}">▶ Escuchar</button>
+          <button type="button" class="btn-secondary btn-sm" data-popout-media="${item.id}" title="Abrir en ventana con tu cuenta">↗️</button>
+          <button type="button" class="btn-ghost btn-sm" data-del-media="${item.id}" title="Quitar de la lista">✕</button>
+        </div>
+      `;
+
+      row.querySelector('.saved-media-info').addEventListener('click', () => {
+        playEmbeddedMedia(item);
+        document.getElementById('modalMedia').classList.add('hidden');
+      });
+      row.querySelector(`[data-play-media="${item.id}"]`).addEventListener('click', () => {
+        playEmbeddedMedia(item);
+        document.getElementById('modalMedia').classList.add('hidden');
+      });
+      row.querySelector(`[data-popout-media="${item.id}"]`).addEventListener('click', () => {
+        if (window.desktopAPI && window.desktopAPI.openMediaWindow) {
+          window.desktopAPI.openMediaWindow({ url: item.url, title: item.title });
+        }
+      });
+      row.querySelector(`[data-del-media="${item.id}"]`).addEventListener('click', () => {
+        state.savedMedia = state.savedMedia.filter((m) => m.id !== item.id);
+        saveAppState();
+        renderSavedMediaList();
+      });
+
+      listEl.appendChild(row);
+    });
+  }
+
+  function openMediaModal() {
+    renderSavedMediaList();
+    document.getElementById('modalMedia').classList.remove('hidden');
   }
 
   function openManualSessionModal() {
@@ -1172,11 +1414,89 @@
     });
 
     // Botones abrir modales
-    document.getElementById('btnNewFolder').addEventListener('click', openFolderModal);
-    document.getElementById('btnNewTask').addEventListener('click', openTaskModal);
-    document.getElementById('btnQuickNewActivity').addEventListener('click', openTaskModal);
-    document.getElementById('btnNewTaskFromCal').addEventListener('click', openTaskModal);
+    document.getElementById('btnNewFolder').addEventListener('click', () => openFolderModal(null));
+    document.getElementById('btnNewTask').addEventListener('click', () => openTaskModal(null));
+    document.getElementById('btnQuickNewActivity').addEventListener('click', () => openTaskModal(null));
+    document.getElementById('btnNewTaskFromCal').addEventListener('click', () => openTaskModal(null));
     document.getElementById('btnLogManualSession').addEventListener('click', openManualSessionModal);
+    document.getElementById('btnOpenMediaModal').addEventListener('click', openMediaModal);
+
+    // Eventos del reproductor de YouTube y Spotify
+    document.getElementById('btnCloseMediaEmbed').addEventListener('click', () => {
+      document.getElementById('sidebarMediaIframeHolder').innerHTML = '';
+      document.getElementById('sidebarMediaEmbedBox').classList.add('hidden');
+      currentActiveMedia = null;
+    });
+
+    document.getElementById('btnPopoutMedia').addEventListener('click', () => {
+      if (currentActiveMedia && window.desktopAPI && window.desktopAPI.openMediaWindow) {
+        document.getElementById('sidebarMediaIframeHolder').innerHTML = '';
+        document.getElementById('sidebarMediaEmbedBox').classList.add('hidden');
+        window.desktopAPI.openMediaWindow({
+          url: currentActiveMedia.externalUrl || currentActiveMedia.url,
+          title: currentActiveMedia.title
+        });
+      }
+    });
+
+    document.getElementById('btnLaunchSpotifyApp').addEventListener('click', () => {
+      if (window.desktopAPI && window.desktopAPI.openMediaWindow) {
+        window.desktopAPI.openMediaWindow({
+          url: 'https://open.spotify.com',
+          title: 'Spotify · Ambiente de Estudio'
+        });
+        document.getElementById('modalMedia').classList.add('hidden');
+      }
+    });
+
+    document.getElementById('btnLaunchYouTubeApp').addEventListener('click', () => {
+      if (window.desktopAPI && window.desktopAPI.openMediaWindow) {
+        window.desktopAPI.openMediaWindow({
+          url: 'https://www.youtube.com/results?search_query=lofi+hip+hop+study+music',
+          title: 'YouTube · Ambiente de Estudio'
+        });
+        document.getElementById('modalMedia').classList.add('hidden');
+      }
+    });
+
+    document.getElementById('formCustomMedia').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const titleInput = document.getElementById('mediaTitleInput');
+      const urlInput = document.getElementById('mediaUrlInput');
+      const rawUrl = urlInput.value.trim();
+      const parsed = parseMediaUrlToEmbed(rawUrl);
+
+      if (!parsed) {
+        showToast('⚠️ Pega un enlace válido de YouTube o Spotify.');
+        return;
+      }
+
+      const defaultName =
+        parsed.platform === 'spotify'
+          ? '🎧 Mi Playlist de Spotify'
+          : parsed.platform === 'youtube'
+          ? '📺 Mi Ambiente de YouTube'
+          : '🎵 Ambiente Personalizado';
+      const title = titleInput.value.trim() || defaultName;
+
+      const newItem = {
+        id: 'med-' + Date.now(),
+        title,
+        url: rawUrl,
+        platform: parsed.platform
+      };
+
+      state.savedMedia = state.savedMedia || [];
+      state.savedMedia.unshift(newItem);
+      saveAppState();
+
+      titleInput.value = '';
+      urlInput.value = '';
+      renderSavedMediaList();
+      playEmbeddedMedia(newItem);
+      document.getElementById('modalMedia').classList.add('hidden');
+      showToast(`🎵 Reproduciendo "${title}"`);
+    });
 
     // Cerrar modales
     document.querySelectorAll('[data-close]').forEach((btn) => {
@@ -1185,26 +1505,39 @@
       });
     });
 
-    // Guardar Carpeta
+    // Guardar Carpeta (Crear nueva o Editar existente)
     document.getElementById('formFolder').addEventListener('submit', (e) => {
       e.preventDefault();
+      const editingId = document.getElementById('folderIdInput').value;
       const name = document.getElementById('folderNameInput').value.trim();
       const icon = document.getElementById('folderIconInput').value;
       const color = document.getElementById('folderColorInput').value;
       if (!name) return;
 
-      const newFolder = { id: 'fld-' + Date.now(), name, icon, color };
-      state.folders.push(newFolder);
-      state.selectedFolderFilter = newFolder.id;
+      if (editingId) {
+        const existing = state.folders.find((f) => f.id === editingId);
+        if (existing) {
+          existing.name = name;
+          existing.icon = icon;
+          existing.color = color;
+          showToast(`✏️ Carpeta "${name}" actualizada`);
+        }
+      } else {
+        const newFolder = { id: 'fld-' + Date.now(), name, icon, color };
+        state.folders.push(newFolder);
+        state.selectedFolderFilter = newFolder.id;
+        showToast(`📂 Carpeta "${name}" creada`);
+      }
+
       document.getElementById('modalFolder').classList.add('hidden');
       saveAppState();
       renderAll();
-      showToast(`📂 Carpeta "${name}" creada`);
     });
 
-    // Guardar Examen / Proyecto
+    // Guardar Examen / Proyecto (Crear nuevo o Editar existente)
     document.getElementById('formTask').addEventListener('submit', (e) => {
       e.preventDefault();
+      const editingTaskId = document.getElementById('taskIdInput').value;
       const folderId = document.getElementById('taskFolderSelect').value;
       const title = document.getElementById('taskTitleInput').value.trim();
       const type = document.getElementById('taskTypeSelect').value;
@@ -1212,29 +1545,52 @@
       const rawSubs = document.getElementById('taskSubtasksTextarea').value;
 
       if (!title) return;
-      const subtasks = rawSubs
+      const lines = rawSubs
         .split('\n')
         .map((s) => s.trim())
-        .filter(Boolean)
-        .map((line, idx) => ({ id: `sub-${Date.now()}-${idx}`, title: line, done: false }));
+        .filter(Boolean);
 
-      const newTask = {
-        id: 'tsk-' + Date.now(),
-        folderId,
-        title,
-        type,
-        dueDate,
-        minutesStudied: 0,
-        subtasks
-      };
-
-      state.tasks.push(newTask);
-      document.getElementById('modalTask').classList.add('hidden');
-      saveAppState();
-      renderAll();
-      document.getElementById('timerTaskSelect').value = newTask.id;
-      renderActiveTimerSubtasks();
-      showToast(`🎯 "${title}" agendado para el ${dueDate}`);
+      if (editingTaskId) {
+        const existingTask = state.tasks.find((t) => t.id === editingTaskId);
+        if (existingTask) {
+          existingTask.folderId = folderId;
+          existingTask.title = title;
+          existingTask.type = type;
+          existingTask.dueDate = dueDate;
+          // Conservar el estado done de subtareas que coincidan por título
+          const prevSubs = existingTask.subtasks || [];
+          existingTask.subtasks = lines.map((line, idx) => {
+            const match = prevSubs.find((p) => p.title === line);
+            return match || { id: `sub-${Date.now()}-${idx}`, title: line, done: false };
+          });
+          showToast(`✏️ "${title}" actualizado`);
+        }
+        document.getElementById('modalTask').classList.add('hidden');
+        saveAppState();
+        renderAll();
+      } else {
+        const subtasks = lines.map((line, idx) => ({
+          id: `sub-${Date.now()}-${idx}`,
+          title: line,
+          done: false
+        }));
+        const newTask = {
+          id: 'tsk-' + Date.now(),
+          folderId,
+          title,
+          type,
+          dueDate,
+          minutesStudied: 0,
+          subtasks
+        };
+        state.tasks.push(newTask);
+        document.getElementById('modalTask').classList.add('hidden');
+        saveAppState();
+        renderAll();
+        document.getElementById('timerTaskSelect').value = newTask.id;
+        renderActiveTimerSubtasks();
+        showToast(`🎯 "${title}" agendado para el ${dueDate}`);
+      }
     });
 
     // Guardar Sesión Manual
