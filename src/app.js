@@ -1265,6 +1265,96 @@
       calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + 1, 1);
       renderCalendarView();
     });
+
+    // --- Sistema de Actualizaciones Automáticas (Estilo Discord) ---
+    initAutoUpdaterUI();
+  }
+
+  function initAutoUpdaterUI() {
+    if (!window.desktopAPI || !window.desktopAPI.checkForUpdates) return;
+
+    const versionBadge = document.getElementById('appVersionBadge');
+    const btnUpdateBanner = document.getElementById('btnUpdateBanner');
+    const updateBannerText = document.getElementById('updateBannerText');
+    const btnCheckUpdates = document.getElementById('btnCheckUpdates');
+
+    let updateState = 'idle'; // 'idle' | 'available' | 'downloading' | 'ready'
+    let pendingRelease = null;
+
+    window.desktopAPI.getVersion().then((v) => {
+      if (v && versionBadge) versionBadge.textContent = `v${v}`;
+    });
+
+    window.desktopAPI.onUpdateProgress((progress) => {
+      if (updateState === 'downloading') {
+        btnUpdateBanner.classList.remove('hidden');
+        updateBannerText.textContent = `Descargando v${pendingRelease?.latestVersion || ''} (${progress.percent}%)`;
+      }
+    });
+
+    async function triggerDownloadAndPrepare() {
+      if (!pendingRelease || !pendingRelease.downloadUrl) return;
+      updateState = 'downloading';
+      btnUpdateBanner.classList.remove('hidden');
+      updateBannerText.textContent = `Descargando v${pendingRelease.latestVersion} (0%)...`;
+
+      const res = await window.desktopAPI.downloadUpdate({
+        downloadUrl: pendingRelease.downloadUrl,
+        assetName: pendingRelease.assetName
+      });
+
+      if (res && res.ok) {
+        updateState = 'ready';
+        btnUpdateBanner.classList.add('ready-to-restart');
+        btnUpdateBanner.innerHTML = `✨ <span id="updateBannerText">v${pendingRelease.latestVersion} lista · Reiniciar para actualizar</span>`;
+        if (window.soundEngine) window.soundEngine.playWaterSparkle();
+        showToast(`🚀 Actualización v${pendingRelease.latestVersion} lista. Haz clic en el botón verde superior para reiniciar.`);
+      } else {
+        updateState = 'available';
+        updateBannerText.textContent = `Reintentar actualización v${pendingRelease.latestVersion}`;
+        showToast('⚠️ No se pudo completar la descarga de la actualización.');
+      }
+    }
+
+    async function checkUpdates(silent = true) {
+      if (updateState === 'downloading' || updateState === 'ready') return;
+      if (!silent) showToast('🔄 Buscando actualizaciones en GitHub...');
+
+      const info = await window.desktopAPI.checkForUpdates();
+      if (!info || !info.ok) {
+        if (!silent) showToast('No se pudo conectar con GitHub Releases.');
+        return;
+      }
+
+      if (info.updateAvailable) {
+        pendingRelease = info;
+        updateState = 'available';
+        btnUpdateBanner.classList.remove('hidden');
+        updateBannerText.textContent = `Nueva v${info.latestVersion} · Descargando...`;
+        showToast(`🌱 ¡Nueva versión v${info.latestVersion} encontrada! Descargando en segundo plano...`);
+        // Al estilo Discord: descarga automáticamente en segundo plano y avisa cuando está lista para reiniciar
+        triggerDownloadAndPrepare();
+      } else if (!silent) {
+        showToast(`✓ Ya tienes la última versión instalada (v${info.currentVersion}).`);
+      }
+    }
+
+    btnUpdateBanner.addEventListener('click', () => {
+      if (updateState === 'ready') {
+        showToast('⏳ Reiniciando y aplicando actualización...');
+        window.desktopAPI.installAndRestart();
+      } else if (updateState === 'available') {
+        triggerDownloadAndPrepare();
+      }
+    });
+
+    if (btnCheckUpdates) {
+      btnCheckUpdates.addEventListener('click', () => checkUpdates(false));
+    }
+
+    // Buscar actualizaciones automáticamente al iniciar la app y cada 30 minutos
+    setTimeout(() => checkUpdates(true), 2500);
+    setInterval(() => checkUpdates(true), 30 * 60 * 1000);
   }
 
   document.addEventListener('DOMContentLoaded', init);

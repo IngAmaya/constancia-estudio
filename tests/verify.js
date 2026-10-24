@@ -63,4 +63,14 @@ statesToCheck.forEach(({ health, rest, expected }) => {
 });
 console.log('  ✓ Los 5 estados del Árbol de Constancia (bloom, healthy, thirsty, wilted, rest) renderizan SVG correctamente');
 
+// 4. Verificar sistema de actualizaciones automáticas estilo Discord
+const mainSource = fs.readFileSync(path.join(ROOT, 'main.js'), 'utf-8');
+const preloadSource = fs.readFileSync(path.join(ROOT, 'preload.js'), 'utf-8');
+assert.ok(mainSource.includes("ipcMain.handle('updater:check'"), 'main.js debe exponer updater:check');
+assert.ok(mainSource.includes("ipcMain.handle('updater:download'"), 'main.js debe exponer updater:download');
+assert.ok(mainSource.includes("ipcMain.handle('updater:installAndRestart'"), 'main.js debe exponer updater:installAndRestart');
+assert.ok(preloadSource.includes('checkForUpdates'), 'preload.js debe exponer checkForUpdates');
+assert.ok(appSource.includes('initAutoUpdaterUI'), 'src/app.js debe inicializar la UI de auto-actualización');
+console.log('  ✓ Sistema de auto-actualización estilo Discord (GitHub Releases) verificado');
+
 console.log('\n✅ TODAS LAS PRUEBAS PASARON EXITOSAMENTE.');
