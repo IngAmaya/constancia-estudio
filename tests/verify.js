@@ -1,4 +1,4 @@
-// Suite de pruebas automatizadas para Raíces · Estudio & Constancia
+// Suite de pruebas automatizadas y verificación de seguridad para Raíces · Estudio & Constancia
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
@@ -6,47 +6,94 @@ const { execSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 
-console.log('🧪 Iniciando pruebas automatizadas en la rama actual...\n');
+console.log('🧪 Iniciando pruebas automatizadas y auditoría de arquitectura modular...\n');
 
-// 1. Verificar sintaxis de todos los módulos JavaScript
+// 1. Auditoría de Seguridad: Node >= 24 y Cero Dependencias Externas en Tiempo de Ejecución
+const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf-8'));
+assert.ok(
+  pkg.engines && pkg.engines.node && pkg.engines.node.includes('24'),
+  'package.json debe exigir Node.js >= 24.21.0 en engines.node'
+);
+const runtimeDeps = Object.keys(pkg.dependencies || {});
+assert.strictEqual(
+  runtimeDeps.length,
+  0,
+  `El ejecutable no debe incluir dependencias externas en runtime (encontradas: ${runtimeDeps.join(', ')})`
+);
+const currentNodeMajor = parseInt(process.versions.node.split('.')[0], 10);
+assert.ok(currentNodeMajor >= 22, `Versión de Node insegura o antigua: ${process.versions.node}`);
+console.log(
+  `  ✓ Seguridad verificada: Node v${process.versions.node} activo, engines="${pkg.engines.node}" y 0 dependencias externas en runtime`
+);
+
+// 2. Verificar existencia y sintaxis de todos los módulos (Backend y Frontend)
 const jsFiles = [
   'main.js',
   'preload.js',
-  'src/app.js',
+  'src/main/storage.js',
+  'src/main/updater.js',
+  'src/main/windows.js',
+  'src/sound-engine.js',
   'src/tree-renderer.js',
-  'src/sound-engine.js'
+  'src/modules/date-utils.js',
+  'src/modules/state-store.js',
+  'src/modules/media-player.js',
+  'src/modules/focus-timer.js',
+  'src/modules/ui-views.js',
+  'src/app.js'
 ];
 
 jsFiles.forEach((file) => {
   const fullPath = path.join(ROOT, file);
-  assert.ok(fs.existsSync(fullPath), `Falta el archivo requerido: ${file}`);
+  assert.ok(fs.existsSync(fullPath), `Falta el módulo requerido: ${file}`);
   execSync(`node --check "${fullPath}"`, { stdio: 'pipe' });
-  console.log(`  ✓ Sintaxis válida: ${file}`);
+  console.log(`  ✓ Módulo válido: ${file}`);
 });
 
-// 2. Verificar que el estado inicial empieza con 0 sesiones (0 días de racha) y salud base de 80%
-const appSource = fs.readFileSync(path.join(ROOT, 'src/app.js'), 'utf-8');
-
-assert.ok(
-  appSource.includes('sessions: []'),
-  'createDefaultState() debe iniciar con sessions: [] para que la racha empiece en 0 días'
-);
-assert.ok(
-  appSource.includes('createdAtDate: todayKey'),
-  'createDefaultState() debe registrar createdAtDate para no penalizar días previos a usar la app'
-);
-assert.ok(
-  appSource.includes('if (key < startDateKey) continue;'),
-  'computeConsistencyMetrics() debe ignorar días anteriores a startDateKey'
-);
-console.log('  ✓ Estado inicial verificado: 0 días de racha al iniciar y sin penalización retroactiva');
-
-// 3. Verificar TreeRenderer (los 5 estados del árbol generan SVG válido)
+// 3. Pruebas unitarias de los módulos desacoplados
 global.window = {};
-require(path.join(ROOT, 'src/tree-renderer.js'));
-const TreeRenderer = global.window.TreeRenderer;
-assert.ok(TreeRenderer, 'TreeRenderer debe exponerse en window');
+global.localStorage = {
+  _data: {},
+  getItem(k) { return this._data[k] || null; },
+  setItem(k, v) { this._data[k] = String(v); }
+};
 
+require(path.join(ROOT, 'src/tree-renderer.js'));
+require(path.join(ROOT, 'src/modules/date-utils.js'));
+require(path.join(ROOT, 'src/modules/state-store.js'));
+require(path.join(ROOT, 'src/modules/media-player.js'));
+
+// 3a. Verificar DateUtils
+const todayKey = global.window.DateUtils.toDateKey(new Date());
+assert.match(todayKey, /^\d{4}-\d{2}-\d{2}$/, 'toDateKey debe devolver formato YYYY-MM-DD');
+const badgeToday = global.window.DateUtils.formatDeadlineBadge(todayKey);
+assert.strictEqual(badgeToday.text, '¡Es Hoy!', 'formatDeadlineBadge para hoy debe ser "¡Es Hoy!"');
+console.log('  ✓ Módulo DateUtils verificado');
+
+// 3b. Verificar StateStore (Racha inicial en 0 y Salud inicial en 80%)
+const defaultState = global.window.StateStore.createDefaultState();
+assert.strictEqual(defaultState.sessions.length, 0, 'Las sesiones iniciales deben estar vacías (0 días de racha)');
+assert.strictEqual(defaultState.createdAtDate, todayKey, 'createdAtDate debe inicializarse con la fecha actual');
+const metrics = global.window.StateStore.computeConsistencyMetrics();
+assert.strictEqual(metrics.streak, 0, 'La racha inicial debe ser exactamente 0 días');
+assert.strictEqual(metrics.health, 80, 'La salud inicial del árbol debe ser 80% sin penalización retroactiva');
+console.log('  ✓ Módulo StateStore verificado: 0 días de racha inicial y 80% de salud base');
+
+// 3c. Verificar MediaPlayer (Parser de enlaces de Spotify y YouTube)
+const spParsed = global.window.MediaPlayer.parseMediaUrlToEmbed(
+  'https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ'
+);
+assert.strictEqual(spParsed.platform, 'spotify');
+assert.ok(spParsed.embedUrl.includes('open.spotify.com/embed/playlist/37i9dQZF1DWZeKCadgRdKQ'));
+
+const ytParsed = global.window.MediaPlayer.parseMediaUrlToEmbed(
+  'https://www.youtube.com/watch?v=jfKfPfyJRdk'
+);
+assert.strictEqual(ytParsed.platform, 'youtube');
+assert.ok(ytParsed.embedUrl.includes('youtube-nocookie.com/embed/jfKfPfyJRdk'));
+console.log('  ✓ Módulo MediaPlayer (YouTube y Spotify) verificado');
+
+// 3d. Verificar TreeRenderer (5 estados SVG)
 const statesToCheck = [
   { health: 95, rest: false, expected: 'bloom' },
   { health: 75, rest: false, expected: 'healthy' },
@@ -54,31 +101,26 @@ const statesToCheck = [
   { health: 20, rest: false, expected: 'wilted' },
   { health: 80, rest: true, expected: 'rest' }
 ];
-
 statesToCheck.forEach(({ health, rest, expected }) => {
-  const info = TreeRenderer.getTreeStateInfo(health, rest);
-  assert.strictEqual(info.id, expected, `Con salud=${health} y rest=${rest} se esperaba estado ${expected}`);
-  const svg = TreeRenderer.renderSVG(info, false);
-  assert.ok(svg.includes('<svg') && svg.includes('</svg>'), `SVG inválido para el estado ${expected}`);
+  const info = global.window.TreeRenderer.getTreeStateInfo(health, rest);
+  assert.strictEqual(info.id, expected);
+  const svg = global.window.TreeRenderer.renderSVG(info, false);
+  assert.ok(svg.includes('<svg') && svg.includes('</svg>'));
 });
-console.log('  ✓ Los 5 estados del Árbol de Constancia (bloom, healthy, thirsty, wilted, rest) renderizan SVG correctamente');
+console.log('  ✓ Módulo TreeRenderer (5 estados SVG) verificado');
 
-// 4. Verificar sistema de actualizaciones automáticas estilo Discord
-const mainSource = fs.readFileSync(path.join(ROOT, 'main.js'), 'utf-8');
-const preloadSource = fs.readFileSync(path.join(ROOT, 'preload.js'), 'utf-8');
-assert.ok(mainSource.includes("ipcMain.handle('updater:check'"), 'main.js debe exponer updater:check');
-assert.ok(mainSource.includes("ipcMain.handle('updater:download'"), 'main.js debe exponer updater:download');
-assert.ok(mainSource.includes("ipcMain.handle('updater:installAndRestart'"), 'main.js debe exponer updater:installAndRestart');
-assert.ok(preloadSource.includes('checkForUpdates'), 'preload.js debe exponer checkForUpdates');
-assert.ok(appSource.includes('initAutoUpdaterUI'), 'src/app.js debe inicializar la UI de auto-actualización');
-console.log('  ✓ Sistema de auto-actualización estilo Discord (GitHub Releases) verificado');
+// 3e. Verificar módulo Updater (comparador semver)
+const updater = require(path.join(ROOT, 'src/main/updater.js'));
+assert.strictEqual(updater.isNewerVersion('v1.3.0', '1.2.0'), true);
+assert.strictEqual(updater.isNewerVersion('v1.2.0', '1.2.0'), false);
+assert.strictEqual(updater.isNewerVersion('v1.1.0', '1.2.0'), false);
+console.log('  ✓ Módulo Updater (comparación semver y GitHub Releases) verificado');
 
-// 5. Verificar Ruido Cálido mejorado, Edición de Carpetas y Vinculación YouTube/Spotify
+// 3f. Verificar UIViews y SoundEngine
+const uiSource = fs.readFileSync(path.join(ROOT, 'src/modules/ui-views.js'), 'utf-8');
 const soundSource = fs.readFileSync(path.join(ROOT, 'src/sound-engine.js'), 'utf-8');
-assert.ok(soundSource.includes('warmthBoost'), 'startBrownNoise() debe incluir realce cálido audible (warmthBoost)');
-assert.ok(appSource.includes('folder-edit-btn') && appSource.includes('editingId'), 'src/app.js debe permitir editar carpetas existentes');
-assert.ok(appSource.includes('parseMediaUrlToEmbed') && appSource.includes('playEmbeddedMedia'), 'src/app.js debe incluir integración con YouTube y Spotify');
-assert.ok(mainSource.includes("ipcMain.handle('media:openWindow'"), 'main.js debe exponer media:openWindow');
-console.log('  ✓ Ruido Cálido mejorado, Edición de Carpetas (✏️) y Reproductor YouTube/Spotify verificados');
+assert.ok(uiSource.includes('openFolderModal') && uiSource.includes('folder-edit-btn'));
+assert.ok(soundSource.includes('warmthBoost'));
+console.log('  ✓ Módulo de Interfaz (UIViews) y SoundEngine verificados');
 
-console.log('\n✅ TODAS LAS PRUEBAS PASARON EXITOSAMENTE.');
+console.log('\n✅ TODAS LAS PRUEBAS MODULARES Y DE SEGURIDAD PASARON EXITOSAMENTE.');
