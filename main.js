@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Notification } = require('electron');
+const { app, BrowserWindow, ipcMain, Notification, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
@@ -158,6 +158,39 @@ function downloadFileWithProgress(url, destPath, onProgress) {
 }
 
 let mainWindow = null;
+let mediaPlayerWindow = null;
+
+function openMediaWindow(targetUrl, windowTitle = 'Reproductor de Estudio · YouTube / Spotify') {
+  if (mediaPlayerWindow && !mediaPlayerWindow.isDestroyed()) {
+    mediaPlayerWindow.loadURL(targetUrl);
+    mediaPlayerWindow.setTitle(windowTitle);
+    if (mediaPlayerWindow.isMinimized()) mediaPlayerWindow.restore();
+    mediaPlayerWindow.focus();
+    return;
+  }
+
+  mediaPlayerWindow = new BrowserWindow({
+    width: 980,
+    height: 660,
+    minWidth: 420,
+    minHeight: 340,
+    backgroundColor: '#111615',
+    title: windowTitle,
+    icon: path.join(__dirname, 'build', 'icon.png'),
+    autoHideMenuBar: true,
+    webPreferences: {
+      partition: 'persist:raices_media',
+      contextIsolation: true,
+      nodeIntegration: false,
+      backgroundThrottling: false
+    }
+  });
+
+  mediaPlayerWindow.loadURL(targetUrl);
+  mediaPlayerWindow.on('closed', () => {
+    mediaPlayerWindow = null;
+  });
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -202,6 +235,24 @@ if (!app.requestSingleInstanceLock()) {
 app.whenReady().then(() => {
   resolveDataPaths();
   migrateLegacyData();
+
+  // Permite que los embeds de YouTube y Spotify funcionen dentro de páginas locales (file://)
+  session.defaultSession.webRequest.onBeforeSendHeaders(
+    { urls: ['*://*.youtube.com/*', '*://*.youtube-nocookie.com/*', '*://*.googlevideo.com/*'] },
+    (details, callback) => {
+      details.requestHeaders['Referer'] = 'https://www.youtube.com/';
+      details.requestHeaders['Origin'] = 'https://www.youtube.com';
+      callback({ requestHeaders: details.requestHeaders });
+    }
+  );
+
+  ipcMain.handle('media:openWindow', (_event, { url, title }) => {
+    if (url && /^https?:\/\//i.test(url)) {
+      openMediaWindow(url, title);
+      return { ok: true };
+    }
+    return { ok: false };
+  });
 
   ipcMain.handle('data:load', () => loadUserData());
   ipcMain.handle('data:save', (_event, data) => saveUserData(data));
