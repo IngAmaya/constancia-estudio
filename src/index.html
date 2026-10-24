@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raíces · Estudio & Constancia</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Barra de título personalizada de escritorio -->
+  <header class="titlebar">
+    <div class="titlebar-drag">
+      <span class="brand-logo">🌱</span>
+      <span class="brand-title">Raíces</span>
+      <span class="brand-subtitle">Espacio de Constancia y Estudio</span>
+    </div>
+
+    <div class="titlebar-actions">
+      <button id="btnMentalPause" class="chip-btn" title="Activar/Desactivar Pausa Mental hoy (protege tu árbol sin culpa)">
+        🌙 <span id="mentalPauseLabel">Hoy: Día de Enfoque</span>
+      </button>
+      <button id="btnPinWindow" class="icon-btn" title="Fijar ventana siempre encima de tus apuntes/PDFs">
+        📌
+      </button>
+      <button id="btnThemeToggle" class="icon-btn" title="Cambiar entre Modo Oscuro Acogedor y Modo Claro Pergamino">
+        ☀️
+      </button>
+      <div class="window-controls">
+        <button id="btnMin" class="win-btn" title="Minimizar">—</button>
+        <button id="btnMax" class="win-btn" title="Maximizar">▢</button>
+        <button id="btnClose" class="win-btn win-close" title="Cerrar">✕</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    <!-- Barra lateral -->
+    <aside class="sidebar">
+      <nav class="nav-menu">
+        <button class="nav-item active" data-view="dashboard">
+          <span class="nav-icon">🌳</span>
+          <div class="nav-text">
+            <span class="nav-label">Bosque y Reloj</span>
+            <span class="nav-desc">Enfoque y árbol</span>
+          </div>
+        </button>
+        <button class="nav-item" data-view="subjects">
+          <span class="nav-icon">📁</span>
+          <div class="nav-text">
+            <span class="nav-label">Materias y Fechas</span>
+            <span class="nav-desc">Carpetas y temarios</span>
+          </div>
+        </button>
+        <button class="nav-item" data-view="calendar">
+          <span class="nav-icon">📅</span>
+          <div class="nav-text">
+            <span class="nav-label">Próximas Entregas</span>
+            <span class="nav-desc">Exámenes y calendario</span>
+          </div>
+        </button>
+        <button class="nav-item" data-view="stats">
+          <span class="nav-icon">📊</span>
+          <div class="nav-text">
+            <span class="nav-label">Estadísticas</span>
+            <span class="nav-desc">Horas e historial</span>
+          </div>
+        </button>
+      </nav>
+
+      <!-- Resumen rápido de racha y bienestar -->
+      <div class="sidebar-card streak-card">
+        <div class="streak-header">
+          <span class="streak-fire">🔥</span>
+          <div>
+            <div class="streak-count"><span id="sidebarStreak">0</span> días</div>
+            <div class="streak-caption">Racha saludable</div>
+          </div>
+        </div>
+        <div class="health-mini-bar">
+          <div id="sidebarHealthFill" class="health-mini-fill" style="width: 85%"></div>
+        </div>
+        <div class="health-mini-text">
+          <span>Salud del árbol</span>
+          <strong id="sidebarHealthPct">85%</strong>
+        </div>
+      </div>
+
+      <!-- Mezclador rápido de sonidos ambientales -->
+      <div class="sidebar-card sound-dock">
+        <div class="dock-title">🎧 Ambiente de Estudio</div>
+        <div class="sound-buttons">
+          <button class="sound-btn" data-sound="rain" title="Lluvia suave">🌧️ Lluvia</button>
+          <button class="sound-btn" data-sound="brown" title="Ruido cálido de concentración">☕ Ruido Cálido</button>
+          <button class="sound-btn" data-sound="zen" title="Armónicos relajantes">🎐 Zen</button>
+        </div>
+        <div class="volume-row">
+          <span>🔉</span>
+          <input type="range" id="soundVolume" min="0" max="100" value="45" />
+        </div>
+      </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="main-content">
+      <!-- VISTA 1: BOSQUE Y RELOJ DE ENFOQUE -->
+      <section id="view-dashboard" class="view-section active">
+        <div class="dashboard-grid">
+          <!-- Columna Izquierda: Árbol de Constancia + Días de Enfoque -->
+          <div class="card tree-card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Tu Árbol de Constancia</h2>
+                <p class="card-subtitle">Se nutre en tus días de enfoque y descansa contigo en tus días libres</p>
+              </div>
+              <span id="treeStateBadge" class="state-badge state-bloom">Floreciente</span>
+            </div>
+
+            <!-- Escena SVG del árbol -->
+            <div class="tree-stage-container">
+              <div id="treeSvgHolder" class="tree-svg-holder"></div>
+              <div class="tree-overlay-metrics">
+                <div class="metric-pill">
+                  <span>💧 Salud:</span>
+                  <strong id="treeHealthLabel">90%</strong>
+                </div>
+                <div class="metric-pill">
+                  <span>⏱️ Hoy:</span>
+                  <strong id="todayMinutesLabel">0 min</strong>
+                </div>
+              </div>
+            </div>
+
+            <p id="treeStateMessage" class="tree-message">
+              Tu constancia está dando frutos. ¡Elige una actividad en el reloj para nutrir tu árbol hoy!
+            </p>
+
+            <!-- Selector de Días de Enfoque vs Descanso (Estabilidad Mental) -->
+            <div class="schedule-box">
+              <div class="schedule-header">
+                <div>
+                  <h3 class="schedule-title">🌿 Tus Días de Enfoque Semanal</h3>
+                  <p class="schedule-desc">Los días desmarcados son <strong>Días de Descanso</strong>: tu árbol no se marchita ni pierdes racha.</p>
+                </div>
+              </div>
+              <div id="weekDaysSelector" class="weekdays-row">
+                <!-- Generado dinámicamente L M X J V S D -->
+              </div>
+            </div>
+
+            <!-- Previsualizador opcional de estados del árbol -->
+            <div class="tree-preview-bar">
+              <span>Ver estados del árbol:</span>
+              <button class="preview-chip active" data-preview="auto">Real (Automático)</button>
+              <button class="preview-chip" data-preview="bloom">🌸 Floreciente</button>
+              <button class="preview-chip" data-preview="healthy">🌳 Sano</button>
+              <button class="preview-chip" data-preview="thirsty">🍂 Sediento</button>
+              <button class="preview-chip" data-preview="wilted">🥀 Marchito</button>
+              <button class="preview-chip" data-preview="rest">🌙 Descanso</button>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Reloj de Enfoque y Actividad Seleccionada -->
+          <div class="card timer-card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Reloj de Concentración</h2>
+                <p class="card-subtitle">Elige en qué concentrarte hoy y cultiva tu avance</p>
+              </div>
+              <button id="btnQuickNewActivity" class="btn-ghost btn-sm">+ Nueva entrega</button>
+            </div>
+
+            <!-- Selectores de Materia y Actividad -->
+            <div class="focus-selectors">
+              <div class="form-group">
+                <label for="timerSubjectSelect">📂 Carpeta de Materia</label>
+                <select id="timerSubjectSelect" class="input-select"></select>
+              </div>
+              <div class="form-group">
+                <label for="timerTaskSelect">🎯 Examen o Proyecto en que concentrarte</label>
+                <select id="timerTaskSelect" class="input-select"></select>
+              </div>
+            </div>
+
+            <!-- Selector de Modalidad de Tiempo -->
+            <div class="timer-modes">
+              <button class="mode-tab active" data-mode="pomodoro" data-minutes="25">
+                <span class="mode-name">🍅 Pomodoro</span>
+                <span class="mode-time">25 min</span>
+              </button>
+              <button class="mode-tab" data-mode="deep" data-minutes="60">
+                <span class="mode-name">🌊 Deep Focus</span>
+                <span class="mode-time">60 min</span>
+              </button>
+              <button class="mode-tab" data-mode="custom" data-minutes="45">
+                <span class="mode-name">✨ Personalizado</span>
+                <span class="mode-time" id="customModeLabel">45 min</span>
+              </button>
+            </div>
+
+            <!-- Input de minutos personalizados (oculto salvo en modo custom) -->
+            <div id="customMinutesRow" class="custom-minutes-row hidden">
+              <label for="customMinutesInput">Duración personalizada (minutos):</label>
+              <input type="number" id="customMinutesInput" min="1" max="240" value="45" class="input-number" />
+              <button id="btnApplyCustomMinutes" class="btn-secondary btn-sm">Aplicar</button>
+            </div>
+
+            <!-- Reloj Circular -->
+            <div class="timer-ring-wrapper">
+              <svg class="timer-ring-svg" viewBox="0 0 220 220">
+                <circle class="timer-ring-bg" cx="110" cy="110" r="96"></circle>
+                <circle id="timerRingProgress" class="timer-ring-fg" cx="110" cy="110" r="96"></circle>
+              </svg>
+              <div class="timer-center-content">
+                <div id="timerDisplay" class="timer-digits">25:00</div>
+                <div id="timerStatusText" class="timer-status-text">Listo para enfocar</div>
+              </div>
+            </div>
+
+            <!-- Controles del Reloj -->
+            <div class="timer-controls">
+              <button id="btnTimerStartPause" class="btn-primary btn-lg">▶ Iniciar Enfoque</button>
+              <button id="btnTimerCompleteEarly" class="btn-secondary" title="Guardar los minutos que llevas estudiados y nutrir el árbol" disabled>
+                ✓ Guardar avance
+              </button>
+              <button id="btnTimerReset" class="btn-ghost" title="Reiniciar reloj">↺</button>
+            </div>
+
+            <!-- Temario / Subtareas de la actividad seleccionada en vivo -->
+            <div class="active-task-Subtasks">
+              <div class="subtasks-mini-header">
+                <span id="activeTaskTitleLabel">📌 Temario de la actividad seleccionada</span>
+                <span id="activeTaskDeadlineBadge" class="deadline-pill"></span>
+              </div>
+              <div id="timerSubtasksList" class="subtasks-mini-list"></div>
+              <form id="timerQuickSubtaskForm" class="quick-subtask-form">
+                <input type="text" id="timerQuickSubtaskInput" placeholder="Añadir tema o subtarea para esta sesión..." />
+                <button type="submit" class="btn-secondary btn-sm">+ Añadir</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VISTA 2: CARPETAS DE MATERIA Y EXÁMENES / PROYECTOS -->
+      <section id="view-subjects" class="view-section">
+        <div class="section-top-bar">
+          <div>
+            <h1 class="section-title">Carpetas de Materia y Entregas</h1>
+            <p class="section-subtitle">Organiza tus materias, fechas de examen o entrega y desglosa cada temario</p>
+          </div>
+          <div class="top-bar-buttons">
+            <button id="btnNewFolder" class="btn-secondary">+ Nueva Carpeta de Materia</button>
+            <button id="btnNewTask" class="btn-primary">+ Nuevo Examen / Proyecto</button>
+          </div>
+        </div>
+
+        <!-- Barra de Carpetas de Materia -->
+        <div id="foldersGrid" class="folders-strip"></div>
+
+        <!-- Lista de Exámenes / Proyectos dentro de la carpeta seleccionada -->
+        <div class="tasks-section-header">
+          <h3 id="currentFolderHeading">Todas las materias</h3>
+          <div class="filter-pills">
+            <button class="filter-pill active" data-filter="all">Todos</button>
+            <button class="filter-pill" data-filter="pending">Pendientes</button>
+            <button class="filter-pill" data-filter="completed">Completados</button>
+          </div>
+        </div>
+
+        <div id="tasksGrid" class="tasks-grid"></div>
+      </section>
+
+      <!-- VISTA 3: CALENDARIO Y PRÓXIMAS FECHAS -->
+      <section id="view-calendar" class="view-section">
+        <div class="section-top-bar">
+          <div>
+            <h1 class="section-title">Calendario de Exámenes y Proyectos</h1>
+            <p class="section-subtitle">Visualiza cuánto falta para cada fecha importante y tu constancia del mes</p>
+          </div>
+          <button id="btnNewTaskFromCal" class="btn-primary">+ Agendar Examen / Entrega</button>
+        </div>
+
+        <div class="calendar-layout">
+          <div class="card upcoming-timeline-card">
+            <h3 class="card-title">⏳ Cuenta Regresiva de Entregas</h3>
+            <p class="card-subtitle">Ordenadas por proximidad de fecha</p>
+            <div id="upcomingTimeline" class="timeline-list"></div>
+          </div>
+
+          <div class="card month-calendar-card">
+            <div class="cal-header">
+              <button id="btnPrevMonth" class="btn-ghost btn-sm">◀</button>
+              <h3 id="calMonthTitle" class="card-title">Octubre 2026</h3>
+              <button id="btnNextMonth" class="btn-ghost btn-sm">▶</button>
+            </div>
+            <div class="cal-legend">
+              <span><i class="dot dot-study"></i> Día estudiado</span>
+              <span><i class="dot dot-exam"></i> Examen / Entrega</span>
+              <span><i class="dot dot-rest"></i> Día descanso</span>
+            </div>
+            <div class="cal-weekdays">
+              <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+            </div>
+            <div id="calendarDaysGrid" class="cal-days-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VISTA 4: ESTADÍSTICAS E HISTORIAL -->
+      <section id="view-stats" class="view-section">
+        <div class="section-top-bar">
+          <div>
+            <h1 class="section-title">Estadísticas y Progreso</h1>
+            <p class="section-subtitle">Tu esfuerzo acumulado respetando tus tiempos de descanso</p>
+          </div>
+          <button id="btnLogManualSession" class="btn-secondary">+ Registrar sesión manual</button>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="card kpi-card">
+            <span class="kpi-icon">⏳</span>
+            <div class="kpi-value" id="statTotalHours">0.0 h</div>
+            <div class="kpi-label">Tiempo total de enfoque</div>
+          </div>
+          <div class="card kpi-card">
+            <span class="kpi-icon">🔥</span>
+            <div class="kpi-value" id="statStreak">0 días</div>
+            <div class="kpi-label">Racha saludable actual</div>
+          </div>
+          <div class="card kpi-card">
+            <span class="kpi-icon">🎯</span>
+            <div class="kpi-value" id="statTotalSessions">0</div>
+            <div class="kpi-label">Sesiones completadas</div>
+          </div>
+          <div class="card kpi-card">
+            <span class="kpi-icon">✅</span>
+            <div class="kpi-value" id="statCompletedSubtasks">0</div>
+            <div class="kpi-label">Temas / subtareas dominados</div>
+          </div>
+        </div>
+
+        <div class="stats-charts-grid">
+          <div class="card">
+            <h3 class="card-title">📊 Minutos de Estudio (Últimos 7 días)</h3>
+            <p class="card-subtitle">Los días marcados con 🌙 son tus días de descanso programados</p>
+            <div id="weeklyBarChart" class="weekly-bar-chart"></div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">📂 Distribución por Materia</h3>
+            <p class="card-subtitle">Tiempo invertido en cada carpeta</p>
+            <div id="subjectDistributionList" class="subject-dist-list"></div>
+          </div>
+        </div>
+
+        <div class="card history-card">
+          <h3 class="card-title">📜 Historial de Sesiones de Estudio</h3>
+          <div id="sessionsHistoryList" class="history-list"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL: Nueva Carpeta de Materia -->
+  <div id="modalFolder" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalFolderTitle">Nueva Carpeta de Materia</h3>
+        <button class="modal-close" data-close="modalFolder">✕</button>
+      </div>
+      <form id="formFolder">
+        <input type="hidden" id="folderIdInput" />
+        <div class="form-group">
+          <label for="folderNameInput">Nombre de la materia</label>
+          <input type="text" id="folderNameInput" required placeholder="Ej. Cálculo Vectorial, Anatomía, Derecho Civil..." />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="folderIconInput">Icono</label>
+            <select id="folderIconInput" class="input-select">
+              <option value="📘">📘 Libro Azul</option>
+              <option value="🧪">🧪 Ciencias / Lab</option>
+              <option value="💻">💻 Programación / Tech</option>
+              <option value="📐">📐 Matemáticas / Ing</option>
+              <option value="🏛️">🏛️ Historia / Leyes</option>
+              <option value="🩺">🩺 Medicina / Salud</option>
+              <option value="🎨">🎨 Arte / Diseño</option>
+              <option value="🌍">🌍 Idiomas / Humanidades</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="folderColorInput">Color de etiqueta</label>
+            <input type="color" id="folderColorInput" value="#34d399" class="input-color" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-ghost" data-close="modalFolder">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar Materia</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Nuevo Examen / Proyecto / Tarea -->
+  <div id="modalTask" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalTaskHeading">Nuevo Examen o Proyecto</h3>
+        <button class="modal-close" data-close="modalTask">✕</button>
+      </div>
+      <form id="formTask">
+        <input type="hidden" id="taskIdInput" />
+        <div class="form-group">
+          <label for="taskFolderSelect">Carpeta de Materia</label>
+          <select id="taskFolderSelect" required class="input-select"></select>
+        </div>
+        <div class="form-group">
+          <label for="taskTitleInput">Título del examen, proyecto o entrega</label>
+          <input type="text" id="taskTitleInput" required placeholder="Ej. Segundo Parcial de Derivadas, Proyecto Final..." />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="taskTypeSelect">Tipo de actividad</label>
+            <select id="taskTypeSelect" class="input-select">
+              <option value="Examen">📝 Examen</option>
+              <option value="Proyecto">🚀 Proyecto</option>
+              <option value="Tarea">📄 Entrega / Tarea</option>
+              <option value="Lectura">📖 Estudio / Repaso</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="taskDueDateInput">Fecha de presentación / examen</label>
+            <input type="date" id="taskDueDateInput" required class="input-date" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="taskSubtasksTextarea">Temario o subtareas iniciales (una por línea, opcional)</label>
+          <textarea id="taskSubtasksTextarea" rows="4" placeholder="Ej.&#10;Repasar unidad 1: Límites&#10;Resolver guía de ejercicios&#10;Hacer simulacro de examen"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-ghost" data-close="modalTask">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar Actividad</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Registrar Sesión Manual -->
+  <div id="modalManualSession" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Registrar Sesión de Estudio</h3>
+        <button class="modal-close" data-close="modalManualSession">✕</button>
+      </div>
+      <form id="formManualSession">
+        <div class="form-group">
+          <label for="manualTaskSelect">¿En qué actividad te concentraste?</label>
+          <select id="manualTaskSelect" required class="input-select"></select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="manualMinutesInput">Minutos estudiados</label>
+            <input type="number" id="manualMinutesInput" min="5" max="300" value="30" required class="input-number" />
+          </div>
+          <div class="form-group">
+            <label for="manualModeSelect">Modalidad</label>
+            <select id="manualModeSelect" class="input-select">
+              <option value="Pomodoro">🍅 Pomodoro</option>
+              <option value="Deep Focus">🌊 Deep Focus</option>
+              <option value="Personalizado">✨ Personalizado</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-ghost" data-close="modalManualSession">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar y Nutrir Árbol</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast de Notificación Acogedora -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="sound-engine.js"></script>
+  <script src="tree-renderer.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

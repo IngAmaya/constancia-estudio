@@ -1,0 +1,58 @@
+{
+  "name": "raices-constancia-estudio",
+  "productName": "Raices",
+  "version": "1.0.0",
+  "description": "Aplicación de escritorio para mantener constancia en exámenes y proyectos con Árbol de Constancia, Carpetas de Materia, Reloj Pomodoro/Deep Focus y Bienestar Mental.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis",
+    "dist:portable": "electron-builder --win portable"
+  },
+  "keywords": [
+    "estudio",
+    "constancia",
+    "pomodoro",
+    "deep-focus",
+    "examenes"
+  ],
+  "author": "Raices",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.raices.constancia",
+    "productName": "Raices",
+    "copyright": "MIT License",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "build/icon.png",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Raíces",
+      "artifactName": "Raices-Setup-${version}.exe"
+    },
+    "portable": {
+      "artifactName": "Raices-Portable-${version}.exe"
+    }
+  }
+}
