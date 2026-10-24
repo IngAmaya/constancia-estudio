@@ -96,13 +96,17 @@ Desinstalar la app **no borra** tus datos. Si quieres eliminarlos, borra esa car
 
 ---
 
-## 👩‍💻 Para desarrolladores
+## 👩‍💻 Para desarrolladores y Seguridad
 
-Requisitos: [Node.js](https://nodejs.org/) 20 o superior.
+Requisitos: **[Node.js 24 LTS](https://nodejs.org/) (`>= 24.21.0`)**.
+- 🔒 **Cero dependencias externas en tiempo de ejecución (`dependencies: {}`):** El ejecutable empaquetado utiliza exclusivamente APIs nativas de Node.js/Electron y del navegador (Web Audio API, SVG, HTTPS nativo), evitando vulnerabilidades de cadena de suministro o *backdoors* de paquetes de terceros.
 
 ```bash
-# Instalar dependencias
+# Instalar dependencias de empaquetado
 npm install
+
+# Ejecutar suite de pruebas automatizadas
+npm test
 
 # Ejecutar en modo desarrollo
 npm start
@@ -116,18 +120,29 @@ npm run dist:portable
 
 > **Nota (npm 11+):** si `npm start` dice que Electron no está instalado, es porque npm bloqueó el script que descarga Electron. Ejecuta `node node_modules/electron/install.js` y vuelve a intentarlo.
 
-### Estructura
+### Arquitectura Modular
 
 ```
-├── main.js              # Proceso principal de Electron (ventana, guardado de datos)
-├── preload.js           # Puente seguro entre la ventana y el sistema
-├── build/icon.png       # Icono de la aplicación
+├── main.js                       # Orquestador del proceso principal de Electron
+├── preload.js                    # Puente seguro (contextBridge) entre ventana y sistema
+├── build/icon.png                # Icono de la aplicación
+├── tests/verify.js               # Suite de pruebas automatizadas y verificación de seguridad
 └── src/
-    ├── index.html       # Interfaz
-    ├── styles.css       # Estilos (modo oscuro / claro)
-    ├── app.js           # Lógica: materias, reloj, racha, estadísticas
-    ├── tree-renderer.js # Dibujo SVG del Árbol de Constancia
-    └── sound-engine.js  # Sonidos ambientales generados sin archivos de audio
+    ├── index.html                # Estructura base de la aplicación
+    ├── styles.css                # Sistema de diseño (Modo Oscuro Acogedor / Claro Pergamino)
+    ├── sound-engine.js           # Sintetizador de audio ambiental (Web Audio API)
+    ├── tree-renderer.js          # Motor gráfico SVG del Árbol de Constancia
+    ├── app.js                    # Controlador ligero de eventos de entrada
+    ├── main/                     # Módulos del Proceso Principal (Backend local)
+    │   ├── storage.js            # Persistencia segura en %APPDATA%\Raices
+    │   ├── updater.js            # Auto-actualizador estilo Discord vía GitHub Releases
+    │   └── windows.js            # Gestión de ventana principal y reproductor multimedia
+    └── modules/                  # Módulos del Renderer (Frontend y UI desacoplados)
+        ├── date-utils.js         # Cálculos de fechas y cuentas regresivas
+        ├── state-store.js        # Estado global y algoritmo de racha / salud del árbol
+        ├── media-player.js       # Integración con YouTube y Spotify
+        ├── focus-timer.js        # Motor del reloj Pomodoro / Deep Focus / Personalizado
+        └── ui-views.js           # Módulo dedicado de Interfaz de Usuario (Vistas y Modales)
 ```
 
 Hecho con [Electron](https://www.electronjs.org/).
