@@ -1,19 +1,12 @@
 // Módulo de gestión de ventanas (Ventana Principal + Reproductor Persistente YouTube/Spotify)
-const { BrowserWindow, session } = require('electron');
+const { BrowserWindow } = require('electron');
 const path = require('path');
 
 let mainWindow = null;
 let mediaPlayerWindow = null;
 
 function configureMediaHeaders() {
-  session.defaultSession.webRequest.onBeforeSendHeaders(
-    { urls: ['*://*.youtube.com/*', '*://*.youtube-nocookie.com/*', '*://*.googlevideo.com/*'] },
-    (details, callback) => {
-      details.requestHeaders['Referer'] = 'https://www.youtube.com/';
-      details.requestHeaders['Origin'] = 'https://www.youtube.com';
-      callback({ requestHeaders: details.requestHeaders });
-    }
-  );
+  // No sobreescribimos cabeceras de googlevideo; el reproductor usa <webview> nativo de nivel superior
 }
 
 function createMainWindow(projectRoot) {
@@ -31,6 +24,7 @@ function createMainWindow(projectRoot) {
       preload: path.join(projectRoot, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      webviewTag: true,
       backgroundThrottling: false
     }
   });
