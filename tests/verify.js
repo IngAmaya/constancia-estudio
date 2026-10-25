@@ -116,11 +116,21 @@ assert.strictEqual(updater.isNewerVersion('v1.2.0', '1.2.0'), false);
 assert.strictEqual(updater.isNewerVersion('v1.1.0', '1.2.0'), false);
 console.log('  ✓ Módulo Updater (comparación semver y GitHub Releases) verificado');
 
-// 3f. Verificar UIViews y SoundEngine
+// 3f. Verificar UIViews, MediaPlayer Webview y SoundEngine
 const uiSource = fs.readFileSync(path.join(ROOT, 'src/modules/ui-views.js'), 'utf-8');
+const mediaSource = fs.readFileSync(path.join(ROOT, 'src/modules/media-player.js'), 'utf-8');
+const windowsSource = fs.readFileSync(path.join(ROOT, 'src/main/windows.js'), 'utf-8');
 const soundSource = fs.readFileSync(path.join(ROOT, 'src/sound-engine.js'), 'utf-8');
 assert.ok(uiSource.includes('openFolderModal') && uiSource.includes('folder-edit-btn'));
+assert.ok(
+  uiSource.includes('isTaskCompleted') && uiSource.includes('data-toggle-complete'),
+  'UIViews debe incluir botón directo para marcar entregas como completadas'
+);
+assert.ok(
+  mediaSource.includes('<webview') && windowsSource.includes('webviewTag: true'),
+  'MediaPlayer debe usar <webview> nativo de Electron para reproducir YouTube sin bloqueo de embed'
+);
 assert.ok(soundSource.includes('warmthBoost'));
-console.log('  ✓ Módulo de Interfaz (UIViews) y SoundEngine verificados');
+console.log('  ✓ Módulo de Interfaz (UIViews), Webview YouTube y SoundEngine verificados');
 
 console.log('\n✅ TODAS LAS PRUEBAS MODULARES Y DE SEGURIDAD PASARON EXITOSAMENTE.');

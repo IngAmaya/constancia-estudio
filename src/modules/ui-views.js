@@ -134,6 +134,13 @@
     });
   }
 
+  function isTaskCompleted(task) {
+    if (typeof task.completed === 'boolean') return task.completed;
+    const totalSubs = (task.subtasks || []).length;
+    const doneSubs = (task.subtasks || []).filter((s) => s.done).length;
+    return totalSubs > 0 && doneSubs === totalSubs;
+  }
+
   function renderTimerSelectors() {
     const state = window.StateStore.getState();
     const subjSelect = document.getElementById('timerSubjectSelect');
@@ -155,9 +162,15 @@
     }
 
     const activeFolderId = subjSelect.value;
-    const filteredTasks = state.tasks.filter(
-      (t) => activeFolderId === 'all' || t.folderId === activeFolderId
+    // Mostrar actividades pendientes en el reloj (o todas si no hay pendientes)
+    let filteredTasks = state.tasks.filter(
+      (t) => (activeFolderId === 'all' || t.folderId === activeFolderId) && !isTaskCompleted(t)
     );
+    if (filteredTasks.length === 0) {
+      filteredTasks = state.tasks.filter(
+        (t) => activeFolderId === 'all' || t.folderId === activeFolderId
+      );
+    }
 
     taskSelect.innerHTML = '';
     if (filteredTasks.length === 0) {
@@ -318,12 +331,9 @@
       if (state.selectedFolderFilter !== 'all' && t.folderId !== state.selectedFolderFilter) {
         return false;
       }
-      const totalSubs = (t.subtasks || []).length;
-      const doneSubs = (t.subtasks || []).filter((s) => s.done).length;
-      const isCompleted = totalSubs > 0 && doneSubs === totalSubs;
-
-      if (state.selectedTaskStatusFilter === 'pending') return !isCompleted;
-      if (state.selectedTaskStatusFilter === 'completed') return isCompleted;
+      const completed = isTaskCompleted(t);
+      if (state.selectedTaskStatusFilter === 'pending') return !completed;
+      if (state.selectedTaskStatusFilter === 'completed') return completed;
       return true;
     });
 
@@ -347,13 +357,21 @@
         icon: '📘',
         color: '#34d399'
       };
-      const badge = formatDeadlineBadge(task.dueDate);
+      const completed = isTaskCompleted(task);
+      const badge = completed
+        ? { text: '✅ Completada', cls: 'deadline-calm' }
+        : formatDeadlineBadge(task.dueDate);
       const totalSubs = (task.subtasks || []).length;
       const doneSubs = (task.subtasks || []).filter((s) => s.done).length;
-      const pct = totalSubs > 0 ? Math.round((doneSubs / totalSubs) * 100) : 0;
+      const pct = completed
+        ? 100
+        : totalSubs > 0
+        ? Math.round((doneSubs / totalSubs) * 100)
+        : 0;
 
       const card = document.createElement('div');
       card.className = 'task-card';
+      if (completed) card.style.opacity = '0.82';
       card.innerHTML = `
         <div class="task-card-top">
           <span class="subject-tag" style="background: ${folder.color}22; color: ${folder.color}; border: 1px solid ${folder.color}55;">
@@ -363,13 +381,13 @@
         </div>
 
         <div class="task-title-row">
-          <div class="task-title">${task.title}</div>
+          <div class="task-title" style="${completed ? 'text-decoration:line-through;color:var(--text-secondary);' : ''}">${task.title}</div>
           <span class="task-type-badge">${task.type}</span>
         </div>
 
         <div class="progress-row">
           <div class="progress-labels">
-            <span>Progreso del temario (${doneSubs}/${totalSubs})</span>
+            <span>${totalSubs > 0 ? `Progreso del temario (${doneSubs}/${totalSubs})` : completed ? 'Entrega finalizada' : 'Actividad en curso'}</span>
             <strong>${pct}% · ${task.minutesStudied || 0} min enfocados</strong>
           </div>
           <div class="progress-bar-bg">
@@ -385,10 +403,13 @@
         </form>
 
         <div class="task-card-actions">
-          <button class="btn-primary btn-sm" data-focus-task="${task.id}">🎯 Concentrarme en esto</button>
+          <button class="btn-primary btn-sm" data-focus-task="${task.id}">🎯 Concentrarme</button>
           <div style="display:flex;gap:6px;">
+            <button class="btn-secondary btn-sm" data-toggle-complete="${task.id}" title="${completed ? 'Reabrir como pendiente' : 'Marcar entrega como completada'}">
+              ${completed ? '↩️ Reabrir' : '✅ Completar'}
+            </button>
             <button class="btn-ghost btn-sm" data-edit-task="${task.id}" title="Editar actividad">✏️</button>
-            <button class="btn-ghost btn-sm" data-delete-task="${task.id}">Eliminar</button>
+            <button class="btn-ghost btn-sm" data-delete-task="${task.id}" title="Eliminar">✕</button>
           </div>
         </div>
       `;
@@ -404,6 +425,9 @@
         `;
         sRow.querySelector('input').addEventListener('change', (e) => {
           sub.done = e.target.checked;
+          const allNowDone =
+            task.subtasks.length > 0 && task.subtasks.every((s) => s.done);
+          task.completed = allNowDone;
           if (sub.done && window.soundEngine) window.soundEngine.playWaterSparkle();
           window.StateStore.saveAppState();
           renderAll();
@@ -423,6 +447,7 @@
         if (!text) return;
         task.subtasks = task.subtasks || [];
         task.subtasks.push({ id: 'sub-' + Date.now(), title: text, done: false });
+        task.completed = false;
         input.value = '';
         window.StateStore.saveAppState();
         renderAll();
@@ -435,6 +460,26 @@
         document.getElementById('timerTaskSelect').value = task.id;
         renderActiveTimerSubtasks();
         showToast(`🎯 Reloj listo para: ${task.title}`);
+      });
+
+      card.querySelector(`[data-toggle-complete="${task.id}"]`).addEventListener('click', () => {
+        const nextCompleted = !isTaskCompleted(task);
+        task.completed = nextCompleted;
+        if (Array.isArray(task.subtasks) && task.subtasks.length > 0) {
+          task.subtasks.forEach((s) => {
+            s.done = nextCompleted;
+          });
+        }
+        if (nextCompleted && window.soundEngine) {
+          window.soundEngine.playWaterSparkle();
+        }
+        window.StateStore.saveAppState();
+        renderAll();
+        showToast(
+          nextCompleted
+            ? `✅ ¡"${task.title}" marcada como completada!`
+            : `↩️ "${task.title}" reabierta como pendiente`
+        );
       });
 
       card.querySelector(`[data-edit-task="${task.id}"]`).addEventListener('click', () => {
@@ -457,9 +502,12 @@
     const timeline = document.getElementById('upcomingTimeline');
     timeline.innerHTML = '';
 
-    const sorted = [...state.tasks].sort((a, b) =>
-      (a.dueDate || '9999').localeCompare(b.dueDate || '9999')
-    );
+    const sorted = [...state.tasks].sort((a, b) => {
+      const aDone = isTaskCompleted(a) ? 1 : 0;
+      const bDone = isTaskCompleted(b) ? 1 : 0;
+      if (aDone !== bDone) return aDone - bDone;
+      return (a.dueDate || '9999').localeCompare(b.dueDate || '9999');
+    });
     if (sorted.length === 0) {
       timeline.innerHTML =
         '<div style="font-size:13px;color:var(--text-muted);">No hay fechas agendadas todavía.</div>';
@@ -470,12 +518,16 @@
           name: 'Materia',
           color: '#34d399'
         };
-        const badge = formatDeadlineBadge(task.dueDate);
+        const completed = isTaskCompleted(task);
+        const badge = completed
+          ? { text: '✅ Completada', cls: 'deadline-calm' }
+          : formatDeadlineBadge(task.dueDate);
         const item = document.createElement('div');
         item.className = 'timeline-item';
+        if (completed) item.style.opacity = '0.72';
         item.innerHTML = `
           <div>
-            <div style="font-weight:700;font-size:14px;">${folder.icon} ${task.title}</div>
+            <div style="font-weight:700;font-size:14px;${completed ? 'text-decoration:line-through;color:var(--text-secondary);' : ''}">${folder.icon} ${task.title}</div>
             <div style="font-size:12px;color:var(--text-secondary);">${folder.name} · ${task.type} · Fecha: ${task.dueDate}</div>
           </div>
           <span class="deadline-pill ${badge.cls}">${badge.text}</span>

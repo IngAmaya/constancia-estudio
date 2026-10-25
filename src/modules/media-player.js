@@ -1,4 +1,4 @@
-// Módulo de Integración y Reproducción con YouTube y Spotify
+// Módulo de Integración y Reproducción con YouTube y Spotify (con <webview> nativo sin bloqueo de embed)
 (function () {
   let currentActiveMedia = null;
 
@@ -16,12 +16,13 @@
       return {
         platform: 'spotify',
         embedUrl: `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0`,
+        watchUrl: `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0`,
         externalUrl: `https://open.spotify.com/${type}/${id}`,
         height: 152
       };
     }
 
-    // 2. Enlaces de YouTube (watch?v=, youtu.be/, live/, embed/, playlist?list=)
+    // 2. Enlaces de YouTube (watch?v=, youtu.be/, live/, embed/, shorts/, playlist?list=)
     const ytListMatch = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
     const ytVideoMatch =
       url.match(/(?:youtube\.com\/(?:watch\?v=|live\/|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/) ||
@@ -29,11 +30,14 @@
 
     if (ytVideoMatch) {
       const videoId = ytVideoMatch[1];
+      const listParam = ytListMatch ? `&list=${ytListMatch[1]}` : '';
       return {
         platform: 'youtube',
+        // Mantenemos embedUrl por compatibilidad con tests, y usamos watchUrl en <webview> para evitar bloqueo de embeds
         embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`,
-        externalUrl: `https://www.youtube.com/watch?v=${videoId}`,
-        height: 155
+        watchUrl: `https://www.youtube.com/watch?v=${videoId}${listParam}`,
+        externalUrl: `https://www.youtube.com/watch?v=${videoId}${listParam}`,
+        height: 165
       };
     }
 
@@ -42,17 +46,19 @@
       return {
         platform: 'youtube',
         embedUrl: `https://www.youtube-nocookie.com/embed/videoseries?list=${listId}&autoplay=1`,
+        watchUrl: `https://www.youtube.com/playlist?list=${listId}`,
         externalUrl: `https://www.youtube.com/playlist?list=${listId}`,
-        height: 155
+        height: 165
       };
     }
 
     if (/^https?:\/\//i.test(url)) {
       return {
         platform: 'web',
-        embedUrl: null,
+        embedUrl: url,
+        watchUrl: url,
         externalUrl: url,
-        height: 155
+        height: 165
       };
     }
 
@@ -62,7 +68,9 @@
   function playEmbeddedMedia(item) {
     const parsed = parseMediaUrlToEmbed(item.url);
     if (!parsed) {
-      if (window.UIViews) window.UIViews.showToast('⚠️ Enlace no válido. Pega una URL de YouTube o Spotify.');
+      if (window.UIViews) {
+        window.UIViews.showToast('⚠️ Enlace no válido. Pega una URL de YouTube o Spotify.');
+      }
       return;
     }
 
@@ -77,31 +85,61 @@
       externalUrl: parsed.externalUrl
     };
 
-    if (!parsed.embedUrl) {
-      if (window.desktopAPI && window.desktopAPI.openMediaWindow) {
-        window.desktopAPI.openMediaWindow({
-          url: parsed.externalUrl,
-          title: currentActiveMedia.title
-        });
-        if (window.UIViews) window.UIViews.showToast(`🎵 Abriendo ${currentActiveMedia.title} en reproductor...`);
-      }
-      return;
-    }
-
     const box = document.getElementById('sidebarMediaEmbedBox');
     const titleEl = document.getElementById('sidebarMediaTitle');
     const holder = document.getElementById('sidebarMediaIframeHolder');
 
     titleEl.textContent = currentActiveMedia.title;
+    const targetSrc = parsed.watchUrl || parsed.embedUrl;
+
+    // Usamos <webview> de Electron con sesión persistente para que YouTube nunca bloquee videos con "No disponible en embed"
     holder.innerHTML = `
-      <iframe
-        src="${parsed.embedUrl}"
-        height="${parsed.height}"
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-        loading="lazy"
-        referrerpolicy="strict-origin-when-cross-origin"
-      ></iframe>
+      <webview
+        id="sidebarActiveWebview"
+        src="${targetSrc}"
+        partition="persist:raices_media"
+        style="width: 100%; height: ${parsed.height}px; border: none; display: inline-flex;"
+        allowpopups
+      ></webview>
     `;
+
+    const webview = document.getElementById('sidebarActiveWebview');
+    if (webview && parsed.platform === 'youtube') {
+      webview.addEventListener('dom-ready', () => {
+        // Ajusta la página de YouTube en modo mini-reproductor limpio dentro de la barra lateral
+        webview
+          .insertCSS(`
+            #masthead-container, ytd-masthead, #secondary, #below, #comments, #related, #chat, ytd-merch-shelf-renderer, tp-yt-app-drawer {
+              display: none !important;
+            }
+            html, body, ytd-app, #content, #page-manager, ytd-watch-flexy {
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #000 !important;
+              overflow: hidden !important;
+            }
+            #player-container-outer, #player-container-inner, #player-container, #movie_player, .html5-video-player {
+              position: fixed !important;
+              inset: 0 !important;
+              width: 100vw !important;
+              height: 100vh !important;
+              max-width: 100vw !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              z-index: 9999 !important;
+            }
+            video.html5-main-video {
+              width: 100vw !important;
+              height: 100vh !important;
+              left: 0 !important;
+              top: 0 !important;
+              object-fit: contain !important;
+            }
+          `)
+          .catch(() => {});
+      });
+    }
+
     box.classList.remove('hidden');
   }
 
@@ -140,7 +178,7 @@
         </div>
         <div class="saved-media-btns">
           <button type="button" class="btn-primary btn-sm" data-play-media="${item.id}">▶ Escuchar</button>
-          <button type="button" class="btn-secondary btn-sm" data-popout-media="${item.id}" title="Abrir en ventana con tu cuenta">↗️</button>
+          <button type="button" class="btn-secondary btn-sm" data-popout-media="${item.id}" title="Abrir en ventana grande">↗️</button>
           <button type="button" class="btn-ghost btn-sm" data-del-media="${item.id}" title="Quitar de la lista">✕</button>
         </div>
       `;
