@@ -131,6 +131,23 @@ assert.ok(
   'MediaPlayer debe usar <webview> nativo de Electron para reproducir YouTube sin bloqueo de embed'
 );
 assert.ok(soundSource.includes('warmthBoost'));
+
+// Descansos entre sesiones (Pomodoro clásico)
+const timerSource = fs.readFileSync(path.join(ROOT, 'src/modules/focus-timer.js'), 'utf-8');
+const htmlSource = fs.readFileSync(path.join(ROOT, 'src/index.html'), 'utf-8');
+assert.ok(
+  timerSource.includes("phase: 'focus'") && timerSource.includes('startBreak') && timerSource.includes('skipBreak'),
+  'FocusTimer debe soportar fase de descanso entre sesiones'
+);
+assert.ok(
+  htmlSource.includes('breakMinutesSelect') && htmlSource.includes('btnTimerSkipBreak'),
+  'index.html debe incluir el selector de descanso y el botón de saltar descanso'
+);
+assert.strictEqual(
+  global.window.StateStore.createDefaultState().breakMinutes,
+  5,
+  'El descanso por defecto debe ser de 5 minutos'
+);
 console.log('  ✓ Módulo de Interfaz (UIViews), Webview YouTube y SoundEngine verificados');
 
 console.log('\n✅ TODAS LAS PRUEBAS MODULARES Y DE SEGURIDAD PASARON EXITOSAMENTE.');

@@ -2,6 +2,8 @@
 (function () {
   const timer = {
     mode: 'pomodoro',
+    phase: 'focus', // 'focus' | 'break'
+    focusMinutes: 25,
     totalSeconds: 25 * 60,
     remainingSeconds: 25 * 60,
     isRunning: false,
@@ -31,12 +33,27 @@
     ring.style.strokeDashoffset = `${offset}`;
 
     const elapsedMinutes = Math.floor((timer.totalSeconds - timer.remainingSeconds) / 60);
-    document.getElementById('btnTimerCompleteEarly').disabled = elapsedMinutes < 1;
+    const onBreak = timer.phase === 'break';
+    const btnEarly = document.getElementById('btnTimerCompleteEarly');
+    btnEarly.disabled = onBreak || elapsedMinutes < 1;
+    btnEarly.classList.toggle('hidden', onBreak);
 
     const btnStart = document.getElementById('btnTimerStartPause');
     const statusText = document.getElementById('timerStatusText');
+    const skipBtn = document.getElementById('btnTimerSkipBreak');
+    const timerCard = document.querySelector('.timer-card');
+    if (timerCard) timerCard.classList.toggle('on-break', onBreak);
+    if (skipBtn) skipBtn.classList.toggle('hidden', !onBreak);
 
-    if (timer.isRunning) {
+    if (onBreak) {
+      if (timer.isRunning) {
+        btnStart.textContent = '⏸ Pausar descanso';
+        statusText.textContent = 'Descansa, estira y respira ☕';
+      } else {
+        btnStart.textContent = '▶ Iniciar descanso';
+        statusText.textContent = 'Descanso en pausa';
+      }
+    } else if (timer.isRunning) {
       btnStart.textContent = '⏸ Pausar';
       statusText.textContent = 'Nutriendo tu árbol... Mantén el enfoque 🌱';
     } else if (timer.remainingSeconds < timer.totalSeconds) {
@@ -53,6 +70,8 @@
       pauseTimer();
     }
     timer.mode = mode;
+    timer.phase = 'focus';
+    timer.focusMinutes = minutes;
     timer.totalSeconds = minutes * 60;
     timer.remainingSeconds = minutes * 60;
 
@@ -81,7 +100,11 @@
         updateTimerUI();
 
         if (timer.remainingSeconds <= 0) {
-          completeSession(Math.round(timer.totalSeconds / 60));
+          if (timer.phase === 'break') {
+            finishBreak();
+          } else {
+            completeSession(Math.round(timer.totalSeconds / 60), { withBreak: true });
+          }
         }
       }
     }, 300);
@@ -104,7 +127,50 @@
     updateTimerUI();
   }
 
-  function completeSession(minutesEarned) {
+  function getBreakMinutes() {
+    const state = window.StateStore.getState();
+    return Math.max(0, Number(state.breakMinutes) || 0);
+  }
+
+  // Inicia la fase de descanso (corre automáticamente tras completar un enfoque)
+  function startBreak(minutes) {
+    timer.phase = 'break';
+    timer.totalSeconds = minutes * 60;
+    timer.remainingSeconds = minutes * 60;
+    updateTimerUI();
+    startTimer();
+  }
+
+  // Vuelve a la fase de enfoque con la duración elegida (sin iniciarla sola)
+  function returnToFocus() {
+    pauseTimer();
+    timer.phase = 'focus';
+    timer.totalSeconds = timer.focusMinutes * 60;
+    timer.remainingSeconds = timer.totalSeconds;
+    updateTimerUI();
+  }
+
+  function finishBreak() {
+    returnToFocus();
+    if (window.soundEngine) window.soundEngine.playCompletionChime();
+    if (window.desktopAPI && window.desktopAPI.sendNotification) {
+      window.desktopAPI.sendNotification({
+        title: '☕ ¡Descanso terminado!',
+        body: 'Cuando estés listo, inicia tu siguiente sesión de enfoque.'
+      });
+    }
+    if (window.UIViews) {
+      window.UIViews.showToast('🌱 Descanso terminado. Inicia tu siguiente sesión cuando quieras.');
+    }
+  }
+
+  function skipBreak() {
+    if (timer.phase !== 'break') return;
+    returnToFocus();
+    if (window.UIViews) window.UIViews.showToast('⏭ Descanso omitido. ¡Listo para enfocar!');
+  }
+
+  function completeSession(minutesEarned, options = {}) {
     pauseTimer();
     timer.remainingSeconds = timer.totalSeconds;
     updateTimerUI();
@@ -140,6 +206,15 @@
     if (window.UIViews) {
       window.UIViews.showToast(`🌳 ¡Excelente! +${minutesEarned} min de estudio. Tu árbol florece.`);
     }
+
+    // Descanso automático entre sesiones (si el usuario eligió uno)
+    const breakMins = getBreakMinutes();
+    if (options.withBreak && breakMins > 0) {
+      startBreak(breakMins);
+      if (window.UIViews) {
+        window.UIViews.showToast(`☕ Descanso de ${breakMins} min. ¡Te lo ganaste!`);
+      }
+    }
   }
 
   window.FocusTimer = {
@@ -149,6 +224,7 @@
     startTimer,
     pauseTimer,
     resetTimer,
-    completeSession
+    completeSession,
+    skipBreak
   };
 })();
