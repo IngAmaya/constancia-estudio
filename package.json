@@ -1,7 +1,7 @@
 {
   "name": "raices-constancia-estudio",
   "productName": "Raices",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Aplicación de escritorio para mantener constancia en exámenes y proyectos con Árbol de Constancia, Carpetas de Materia, Reloj Pomodoro/Deep Focus y Bienestar Mental.",
   "main": "main.js",
   "engines": {

@@ -228,6 +228,19 @@
               <button id="btnApplyCustomMinutes" class="btn-secondary btn-sm">Aplicar</button>
             </div>
 
+            <!-- Descanso entre sesiones -->
+            <div class="break-row">
+              <label for="breakMinutesSelect">☕ Descanso entre sesiones</label>
+              <select id="breakMinutesSelect" class="input-select">
+                <option value="0">Sin descanso</option>
+                <option value="5">5 min</option>
+                <option value="10">10 min</option>
+                <option value="15">15 min</option>
+                <option value="20">20 min</option>
+                <option value="30">30 min</option>
+              </select>
+            </div>
+
             <!-- Reloj Circular -->
             <div class="timer-ring-wrapper">
               <svg class="timer-ring-svg" viewBox="0 0 220 220">
@@ -245,6 +258,9 @@
               <button id="btnTimerStartPause" class="btn-primary btn-lg">▶ Iniciar Enfoque</button>
               <button id="btnTimerCompleteEarly" class="btn-secondary" title="Guardar los minutos que llevas estudiados y nutrir el árbol" disabled>
                 ✓ Guardar avance
+              </button>
+              <button id="btnTimerSkipBreak" class="btn-secondary hidden" title="Saltar el descanso y volver a enfocar">
+                ⏭ Saltar descanso
               </button>
               <button id="btnTimerReset" class="btn-ghost" title="Reiniciar reloj">↺</button>
             </div>

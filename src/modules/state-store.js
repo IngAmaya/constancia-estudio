@@ -13,6 +13,7 @@
       focusDaysOfWeek: [1, 2, 3, 4, 5],
       mentalPauseDates: [],
       customTimerMinutes: 45,
+      breakMinutes: 5,
       selectedFolderFilter: 'all',
       selectedTaskStatusFilter: 'all',
       folders: [

@@ -124,6 +124,23 @@
       window.FocusTimer.resetTimer();
     });
 
+    // Descanso entre sesiones (tipo Pomodoro clásico)
+    const breakSelect = document.getElementById('breakMinutesSelect');
+    breakSelect.value = String(state.breakMinutes ?? 5);
+    if (breakSelect.value !== String(state.breakMinutes ?? 5)) breakSelect.value = '5';
+    breakSelect.addEventListener('change', () => {
+      state.breakMinutes = Number(breakSelect.value);
+      window.StateStore.saveAppState();
+      window.UIViews.showToast(
+        state.breakMinutes > 0
+          ? `☕ Descanso de ${state.breakMinutes} min entre sesiones`
+          : 'Descansos desactivados'
+      );
+    });
+    document.getElementById('btnTimerSkipBreak').addEventListener('click', () => {
+      window.FocusTimer.skipBreak();
+    });
+
     document.getElementById('btnTimerCompleteEarly').addEventListener('click', () => {
       const timer = window.FocusTimer.getTimerState();
       const elapsedMins = Math.floor((timer.totalSeconds - timer.remainingSeconds) / 60);
