@@ -29,6 +29,8 @@
           type: 'Examen',
           dueDate: toDateKey(addDays(today, 4)),
           minutesStudied: 0,
+          completed: false,
+          deleted: false,
           subtasks: [
             { id: 'sub-1', title: 'Repasar apuntes y fórmulas clave', done: false },
             { id: 'sub-2', title: 'Resolver guía de ejercicios prácticos', done: false },
@@ -42,6 +44,8 @@
           type: 'Proyecto',
           dueDate: toDateKey(addDays(today, 9)),
           minutesStudied: 0,
+          completed: false,
+          deleted: false,
           subtasks: [
             { id: 'sub-4', title: 'Definir estructura y objetivos', done: false },
             { id: 'sub-5', title: 'Desarrollar prototipo funcional', done: false },
@@ -105,6 +109,25 @@
     }
     if (!loadedState.createdAtDate) {
       loadedState.createdAtDate = toDateKey(new Date());
+    }
+    // Migración v1.6: cada actividad tiene estado explícito (completada / en papelera)
+    if (Array.isArray(loadedState.tasks)) {
+      loadedState.tasks.forEach((t) => {
+        if (typeof t.completed !== 'boolean') {
+          const subs = t.subtasks || [];
+          t.completed = subs.length > 0 && subs.every((s) => s.done);
+        }
+        if (typeof t.deleted !== 'boolean') t.deleted = false;
+      });
+    }
+    if (
+      loadedState.selectedFolderFilter !== 'all' &&
+      loadedState.selectedFolderFilter !== 'completed' &&
+      loadedState.selectedFolderFilter !== 'trash' &&
+      Array.isArray(loadedState.folders) &&
+      !loadedState.folders.some((f) => f.id === loadedState.selectedFolderFilter)
+    ) {
+      loadedState.selectedFolderFilter = 'all';
     }
     if (!Array.isArray(loadedState.savedMedia) || loadedState.savedMedia.length === 0) {
       loadedState.savedMedia = createDefaultState().savedMedia;

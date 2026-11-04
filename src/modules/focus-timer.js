@@ -177,7 +177,9 @@
 
     const state = window.StateStore.getState();
     const taskId = document.getElementById('timerTaskSelect').value;
-    const task = state.tasks.find((t) => t.id === taskId) || state.tasks[0];
+    const task =
+      state.tasks.find((t) => t.id === taskId && t.deleted !== true) ||
+      state.tasks.find((t) => t.deleted !== true && t.completed !== true);
     const modeLabel =
       timer.mode === 'pomodoro'
         ? 'Pomodoro'
