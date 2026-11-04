@@ -300,11 +300,6 @@
         <!-- Lista de Exámenes / Proyectos dentro de la carpeta seleccionada -->
         <div class="tasks-section-header">
           <h3 id="currentFolderHeading">Todas las materias</h3>
-          <div class="filter-pills">
-            <button class="filter-pill active" data-filter="all">Todos</button>
-            <button class="filter-pill" data-filter="pending">Pendientes</button>
-            <button class="filter-pill" data-filter="completed">Completados</button>
-          </div>
         </div>
 
         <div id="tasksGrid" class="tasks-grid"></div>
@@ -482,6 +477,20 @@
           <button type="submit" class="btn-primary">Guardar Actividad</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Confirmación (eliminar definitivamente, vaciar papelera) -->
+  <div id="modalConfirm" class="modal-backdrop hidden">
+    <div class="modal-box" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3 id="confirmTitle">Confirmar</h3>
+      </div>
+      <p id="confirmMessage" style="font-size:13.5px;color:var(--text-secondary);line-height:1.5;margin-bottom:18px;"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="btnConfirmCancel">Cancelar</button>
+        <button type="button" class="btn-primary btn-danger" id="btnConfirmOk">Confirmar</button>
+      </div>
     </div>
   </div>
 

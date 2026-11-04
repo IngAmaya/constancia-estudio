@@ -141,6 +141,96 @@
     return totalSubs > 0 && doneSubs === totalSubs;
   }
 
+  function isTaskDeleted(task) {
+    return task.deleted === true;
+  }
+
+  // Actividades "vivas": ni en la Papelera ni completadas (las que se ven dentro de su materia)
+  function isTaskActive(task) {
+    return !isTaskDeleted(task) && !isTaskCompleted(task);
+  }
+
+  // Si la materia de origen fue eliminada, la actividad se reasigna a la primera materia disponible
+  function ensureValidFolder(task) {
+    const state = window.StateStore.getState();
+    if (!state.folders.some((f) => f.id === task.folderId) && state.folders.length > 0) {
+      task.folderId = state.folders[0].id;
+    }
+  }
+
+  // Ventana de confirmación propia (dentro de la app) que devuelve una Promesa<boolean>
+  function confirmDialog({ title, message, confirmText = 'Confirmar' }) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('modalConfirm');
+      const btnOk = document.getElementById('btnConfirmOk');
+      const btnCancel = document.getElementById('btnConfirmCancel');
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmMessage').textContent = message;
+      btnOk.textContent = confirmText;
+      modal.classList.remove('hidden');
+
+      const finish = (result) => {
+        modal.classList.add('hidden');
+        btnOk.onclick = null;
+        btnCancel.onclick = null;
+        resolve(result);
+      };
+      btnOk.onclick = () => finish(true);
+      btnCancel.onclick = () => finish(false);
+    });
+  }
+
+  function moveTaskToTrash(task) {
+    task.deleted = true;
+    task.deletedAt = Date.now();
+    window.StateStore.saveAppState();
+    renderAll();
+    showToast(`🗑️ "${task.title}" movida a la Papelera. Puedes restaurarla cuando quieras.`);
+  }
+
+  function restoreTaskFromTrash(task) {
+    ensureValidFolder(task);
+    task.deleted = false;
+    delete task.deletedAt;
+    window.StateStore.saveAppState();
+    renderAll();
+    showToast(
+      isTaskCompleted(task)
+        ? `♻️ "${task.title}" restaurada en Completadas`
+        : `♻️ "${task.title}" restaurada en su materia`
+    );
+  }
+
+  async function purgeTask(task) {
+    const ok = await confirmDialog({
+      title: '🗑️ Eliminar definitivamente',
+      message: `"${task.title}" se borrará para siempre y no podrás recuperarla. ¿Continuar?`,
+      confirmText: 'Eliminar para siempre'
+    });
+    if (!ok) return;
+    const state = window.StateStore.getState();
+    state.tasks = state.tasks.filter((t) => t.id !== task.id);
+    window.StateStore.saveAppState();
+    renderAll();
+    showToast('Actividad eliminada definitivamente.');
+  }
+
+  async function emptyTrash() {
+    const state = window.StateStore.getState();
+    const count = state.tasks.filter(isTaskDeleted).length;
+    if (count === 0) return;
+    const ok = await confirmDialog({
+      title: '🗑️ Vaciar la Papelera',
+      message: `Se eliminarán definitivamente ${count} actividad(es). Esta acción no se puede deshacer.`,
+      confirmText: 'Vaciar Papelera'
+    });
+    if (!ok) return;
+    state.tasks = state.tasks.filter((t) => !isTaskDeleted(t));
+    window.StateStore.saveAppState();
+    renderAll();
+    showToast('Papelera vaciada.');
+  }
+
   function renderTimerSelectors() {
     const state = window.StateStore.getState();
     const subjSelect = document.getElementById('timerSubjectSelect');
@@ -162,21 +252,16 @@
     }
 
     const activeFolderId = subjSelect.value;
-    // Mostrar actividades pendientes en el reloj (o todas si no hay pendientes)
-    let filteredTasks = state.tasks.filter(
-      (t) => (activeFolderId === 'all' || t.folderId === activeFolderId) && !isTaskCompleted(t)
+    // Solo actividades pendientes (las completadas y las de la Papelera no se enfocan)
+    const filteredTasks = state.tasks.filter(
+      (t) => (activeFolderId === 'all' || t.folderId === activeFolderId) && isTaskActive(t)
     );
-    if (filteredTasks.length === 0) {
-      filteredTasks = state.tasks.filter(
-        (t) => activeFolderId === 'all' || t.folderId === activeFolderId
-      );
-    }
 
     taskSelect.innerHTML = '';
     if (filteredTasks.length === 0) {
       const opt = document.createElement('option');
       opt.value = '';
-      opt.textContent = 'Sin actividades (crea una con "+ Nueva entrega")';
+      opt.textContent = 'Sin actividades pendientes (crea una con "+ Nueva entrega")';
       taskSelect.appendChild(opt);
     } else {
       filteredTasks.forEach((t) => {
@@ -233,8 +318,12 @@
       `;
       row.querySelector('input').addEventListener('change', (e) => {
         sub.done = e.target.checked;
+        task.completed = task.subtasks.length > 0 && task.subtasks.every((s) => s.done);
         if (sub.done && window.soundEngine) {
           window.soundEngine.playWaterSparkle();
+        }
+        if (task.completed) {
+          showToast(`✅ "${task.title}" completada. La encontrarás en la carpeta Completadas.`);
         }
         window.StateStore.saveAppState();
         renderAll();
@@ -255,6 +344,7 @@
     foldersGrid.innerHTML = '';
 
     const allTotalMins = state.sessions.reduce((acc, s) => acc + Number(s.minutes || 0), 0);
+    const activeTasksCount = state.tasks.filter(isTaskActive).length;
     const allCard = document.createElement('div');
     allCard.className = `folder-chip-card ${state.selectedFolderFilter === 'all' ? 'active' : ''}`;
     allCard.innerHTML = `
@@ -262,7 +352,7 @@
         <span class="folder-icon-badge">🗂️</span>
       </div>
       <div class="folder-name">Todas las Materias</div>
-      <div class="folder-meta">${state.tasks.length} entregas · ${(allTotalMins / 60).toFixed(1)} h</div>
+      <div class="folder-meta">${activeTasksCount} pendientes · ${(allTotalMins / 60).toFixed(1)} h</div>
     `;
     allCard.addEventListener('click', () => {
       state.selectedFolderFilter = 'all';
@@ -271,7 +361,7 @@
     foldersGrid.appendChild(allCard);
 
     state.folders.forEach((folder) => {
-      const folderTasks = state.tasks.filter((t) => t.folderId === folder.id);
+      const folderTasks = state.tasks.filter((t) => t.folderId === folder.id && isTaskActive(t));
       const folderMins = state.sessions
         .filter((s) => s.folderId === folder.id)
         .reduce((acc, s) => acc + Number(s.minutes || 0), 0);
@@ -308,7 +398,13 @@
           return;
         }
         state.folders = state.folders.filter((f) => f.id !== folder.id);
-        state.tasks = state.tasks.filter((t) => t.folderId !== folder.id);
+        // Las pendientes de esta materia van a la Papelera (recuperables); las completadas se conservan
+        state.tasks.forEach((t) => {
+          if (t.folderId === folder.id && isTaskActive(t)) {
+            t.deleted = true;
+            t.deletedAt = Date.now();
+          }
+        });
         if (state.selectedFolderFilter === folder.id) {
           state.selectedFolderFilter = 'all';
         }
@@ -319,30 +415,69 @@
       foldersGrid.appendChild(card);
     });
 
+    // Carpetas especiales del sistema: Completadas y Papelera (no editables ni eliminables)
+    const completedCount = state.tasks.filter((t) => !isTaskDeleted(t) && isTaskCompleted(t)).length;
+    const trashCount = state.tasks.filter(isTaskDeleted).length;
+    [
+      { id: 'completed', icon: '✅', name: 'Completadas', meta: `${completedCount} entregas`, color: '#34d399' },
+      { id: 'trash', icon: '🗑️', name: 'Papelera', meta: `${trashCount} por confirmar`, color: '#f87171' }
+    ].forEach((special) => {
+      const sCard = document.createElement('div');
+      sCard.className = `folder-chip-card special-folder ${state.selectedFolderFilter === special.id ? 'active' : ''}`;
+      sCard.dataset.specialFolder = special.id;
+      sCard.style.borderTop = `3px solid ${special.color}`;
+      sCard.innerHTML = `
+        <div class="folder-chip-top">
+          <span class="folder-icon-badge">${special.icon}</span>
+        </div>
+        <div class="folder-name">${special.name}</div>
+        <div class="folder-meta">${special.meta}</div>
+      `;
+      sCard.addEventListener('click', () => {
+        state.selectedFolderFilter = special.id;
+        renderSubjectsView();
+      });
+      foldersGrid.appendChild(sCard);
+    });
+
     const currentFolder = state.folders.find((f) => f.id === state.selectedFolderFilter);
-    document.getElementById('currentFolderHeading').textContent = currentFolder
-      ? `${currentFolder.icon} ${currentFolder.name}`
-      : '🗂️ Todas las materias';
+    document.getElementById('currentFolderHeading').textContent =
+      state.selectedFolderFilter === 'completed'
+        ? '✅ Completadas'
+        : state.selectedFolderFilter === 'trash'
+        ? '🗑️ Papelera'
+        : currentFolder
+        ? `${currentFolder.icon} ${currentFolder.name}`
+        : '🗂️ Todas las materias';
 
     const tasksGrid = document.getElementById('tasksGrid');
     tasksGrid.innerHTML = '';
 
+    if (state.selectedFolderFilter === 'trash') {
+      renderTrashView(tasksGrid);
+      return;
+    }
+
+    const viewingCompleted = state.selectedFolderFilter === 'completed';
     let visibleTasks = state.tasks.filter((t) => {
-      if (state.selectedFolderFilter !== 'all' && t.folderId !== state.selectedFolderFilter) {
-        return false;
-      }
-      const completed = isTaskCompleted(t);
-      if (state.selectedTaskStatusFilter === 'pending') return !completed;
-      if (state.selectedTaskStatusFilter === 'completed') return completed;
-      return true;
+      if (isTaskDeleted(t)) return false;
+      if (viewingCompleted) return isTaskCompleted(t);
+      if (isTaskCompleted(t)) return false;
+      return state.selectedFolderFilter === 'all' || t.folderId === state.selectedFolderFilter;
     });
 
     visibleTasks.sort((a, b) => (a.dueDate || '9999').localeCompare(b.dueDate || '9999'));
 
     if (visibleTasks.length === 0) {
-      tasksGrid.innerHTML = `
+      tasksGrid.innerHTML = viewingCompleted
+        ? `
         <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 32px;">
-          <p style="color: var(--text-secondary); margin-bottom: 12px;">No hay exámenes ni proyectos en esta vista.</p>
+          <p style="color: var(--text-secondary);">Aún no has completado ninguna entrega. Cuando lo hagas, aparecerá aquí 🌱</p>
+        </div>
+      `
+        : `
+        <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 32px;">
+          <p style="color: var(--text-secondary); margin-bottom: 12px;">No hay exámenes ni proyectos pendientes en esta vista.</p>
           <button class="btn-primary" id="btnEmptyCreateTask">+ Crear Examen o Proyecto</button>
         </div>
       `;
@@ -473,12 +608,13 @@
         if (nextCompleted && window.soundEngine) {
           window.soundEngine.playWaterSparkle();
         }
+        if (!nextCompleted) ensureValidFolder(task);
         window.StateStore.saveAppState();
         renderAll();
         showToast(
           nextCompleted
-            ? `✅ ¡"${task.title}" marcada como completada!`
-            : `↩️ "${task.title}" reabierta como pendiente`
+            ? `✅ ¡"${task.title}" completada! Se movió a la carpeta Completadas`
+            : `↩️ "${task.title}" reabierta y devuelta a su materia`
         );
       });
 
@@ -487,11 +623,72 @@
       });
 
       card.querySelector(`[data-delete-task="${task.id}"]`).addEventListener('click', () => {
-        state.tasks = state.tasks.filter((t) => t.id !== task.id);
-        window.StateStore.saveAppState();
-        renderAll();
+        moveTaskToTrash(task);
       });
 
+      tasksGrid.appendChild(card);
+    });
+  }
+
+  // Contenedor de Papelera: restaurar o eliminar definitivamente (con confirmación)
+  function renderTrashView(tasksGrid) {
+    const state = window.StateStore.getState();
+    const trashed = state.tasks
+      .filter(isTaskDeleted)
+      .sort((a, b) => (b.deletedAt || 0) - (a.deletedAt || 0));
+
+    if (trashed.length === 0) {
+      tasksGrid.innerHTML = `
+        <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 32px;">
+          <p style="color: var(--text-secondary);">La Papelera está vacía 🌿</p>
+        </div>
+      `;
+      return;
+    }
+
+    const banner = document.createElement('div');
+    banner.className = 'card trash-banner';
+    banner.style.gridColumn = '1 / -1';
+    banner.innerHTML = `
+      <span style="font-size:13px;color:var(--text-secondary);">
+        ${trashed.length} actividad(es) en la Papelera. Solo se borran para siempre cuando tú lo confirmes.
+      </span>
+      <button class="btn-secondary btn-sm btn-danger-outline" id="btnEmptyTrash">🗑️ Vaciar Papelera</button>
+    `;
+    banner.querySelector('#btnEmptyTrash').addEventListener('click', emptyTrash);
+    tasksGrid.appendChild(banner);
+
+    trashed.forEach((task) => {
+      const folder = state.folders.find((f) => f.id === task.folderId);
+      const originLabel = isTaskCompleted(task)
+        ? '✅ Completada'
+        : folder
+        ? `${folder.icon} ${folder.name}`
+        : '📘 Materia eliminada';
+      const when = task.deletedAt ? new Date(task.deletedAt).toLocaleDateString() : '';
+
+      const card = document.createElement('div');
+      card.className = 'task-card trash-card';
+      card.innerHTML = `
+        <div class="task-card-top">
+          <span class="subject-tag">${originLabel}</span>
+          <span class="deadline-pill deadline-calm">${when ? 'Eliminada ' + when : 'Eliminada'}</span>
+        </div>
+        <div class="task-title-row">
+          <div class="task-title" style="color:var(--text-secondary);">${task.title}</div>
+          <span class="task-type-badge">${task.type}</span>
+        </div>
+        <div class="task-card-actions">
+          <button class="btn-primary btn-sm" data-restore-task="${task.id}">♻️ Restaurar</button>
+          <button class="btn-secondary btn-sm btn-danger-outline" data-purge-task="${task.id}">🗑️ Eliminar definitivamente</button>
+        </div>
+      `;
+      card.querySelector(`[data-restore-task="${task.id}"]`).addEventListener('click', () => {
+        restoreTaskFromTrash(task);
+      });
+      card.querySelector(`[data-purge-task="${task.id}"]`).addEventListener('click', () => {
+        purgeTask(task);
+      });
       tasksGrid.appendChild(card);
     });
   }
@@ -502,7 +699,7 @@
     const timeline = document.getElementById('upcomingTimeline');
     timeline.innerHTML = '';
 
-    const sorted = [...state.tasks].sort((a, b) => {
+    const sorted = state.tasks.filter((t) => !isTaskDeleted(t)).sort((a, b) => {
       const aDone = isTaskCompleted(a) ? 1 : 0;
       const bDone = isTaskCompleted(b) ? 1 : 0;
       if (aDone !== bDone) return aDone - bDone;
@@ -560,7 +757,7 @@
       const cellDate = new Date(year, month, day);
       const cellKey = toDateKey(cellDate);
       const mins = window.StateStore.getMinutesOnDate(cellKey);
-      const examsOnDay = state.tasks.filter((t) => t.dueDate === cellKey);
+      const examsOnDay = state.tasks.filter((t) => !isTaskDeleted(t) && t.dueDate === cellKey);
       const isRest = !window.StateStore.isDayScheduledForFocus(cellDate);
 
       const cell = document.createElement('div');
@@ -742,7 +939,7 @@
     } else {
       heading.textContent = 'Nuevo Examen o Proyecto';
       idInput.value = '';
-      if (state.selectedFolderFilter !== 'all') {
+      if (state.folders.some((f) => f.id === state.selectedFolderFilter)) {
         select.value = state.selectedFolderFilter;
       }
       titleInput.value = '';
@@ -757,7 +954,7 @@
     const state = window.StateStore.getState();
     const select = document.getElementById('manualTaskSelect');
     select.innerHTML = '';
-    state.tasks.forEach((t) => {
+    state.tasks.filter((t) => !isTaskDeleted(t)).forEach((t) => {
       const f = state.folders.find((x) => x.id === t.folderId);
       const opt = document.createElement('option');
       opt.value = t.id;

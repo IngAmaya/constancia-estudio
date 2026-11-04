@@ -143,6 +143,28 @@ assert.ok(
   htmlSource.includes('breakMinutesSelect') && htmlSource.includes('btnTimerSkipBreak'),
   'index.html debe incluir el selector de descanso y el botón de saltar descanso'
 );
+// Carpeta Completadas y Papelera con confirmación
+assert.ok(
+  uiSource.includes('specialFolder') &&
+    uiSource.includes('moveTaskToTrash') &&
+    uiSource.includes('restoreTaskFromTrash') &&
+    uiSource.includes('purgeTask') &&
+    uiSource.includes('emptyTrash'),
+  'UIViews debe incluir carpeta Completadas y Papelera (restaurar / eliminar definitivamente)'
+);
+assert.ok(
+  htmlSource.includes('modalConfirm') && htmlSource.includes('btnConfirmOk'),
+  'index.html debe incluir la ventana de confirmación'
+);
+{
+  const stateSource = fs.readFileSync(path.join(ROOT, 'src/modules/state-store.js'), 'utf-8');
+  assert.ok(stateSource.includes('t.deleted'), 'StateStore debe migrar el estado deleted/completed de las tareas');
+  global.window.StateStore.createDefaultState().tasks.forEach((t) => {
+    assert.strictEqual(t.completed, false);
+    assert.strictEqual(t.deleted, false);
+  });
+}
+
 assert.strictEqual(
   global.window.StateStore.createDefaultState().breakMinutes,
   5,

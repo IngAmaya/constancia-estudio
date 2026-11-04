@@ -159,19 +159,10 @@
       if (!title || !task) return;
       task.subtasks = task.subtasks || [];
       task.subtasks.push({ id: 'sub-' + Date.now(), title, done: false });
+      task.completed = false;
       input.value = '';
       window.StateStore.saveAppState();
       window.UIViews.renderAll();
-    });
-
-    // Filtros en Vista Materias
-    document.querySelectorAll('.filter-pill').forEach((pill) => {
-      pill.addEventListener('click', () => {
-        document.querySelectorAll('.filter-pill').forEach((p) => p.classList.remove('active'));
-        pill.classList.add('active');
-        state.selectedTaskStatusFilter = pill.dataset.filter;
-        window.UIViews.renderSubjectsView();
-      });
     });
 
     // Botones abrir modales
@@ -343,6 +334,8 @@
           type,
           dueDate,
           minutesStudied: 0,
+          completed: false,
+          deleted: false,
           subtasks
         };
         state.tasks.push(newTask);
