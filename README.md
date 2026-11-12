@@ -64,7 +64,7 @@ Debajo del reloj puedes ir marcando los temas del temario mientras estudias.
 ### 5. Extras
 - 🎧 **Sonidos ambientales** (barra lateral): lluvia, ruido cálido y armónicos zen, con control de volumen.
 - 📌 **Fijar ventana**: mantiene la app siempre encima de tus PDFs o apuntes.
-- ☀️ / 🌙 **Tema**: modo oscuro acogedor o modo claro pergamino.
+- ☀️ / 🌙 **Tema**: modo oscuro "Bosque nocturno" o modo claro "Mañana fresca".
 - 📅 **Calendario**: días estudiados, días de descanso y fechas de examen.
 - 📊 **Estadísticas**: horas por semana y por materia, racha e historial. Puedes registrar a mano sesiones que hiciste fuera de la computadora.
 
@@ -129,7 +129,7 @@ npm run dist:portable
 ├── tests/verify.js               # Suite de pruebas automatizadas y verificación de seguridad
 └── src/
     ├── index.html                # Estructura base de la aplicación
-    ├── styles.css                # Sistema de diseño (Modo Oscuro Acogedor / Claro Pergamino)
+    ├── styles.css                # Sistema de diseño (Bosque nocturno / Mañana fresca)
     ├── sound-engine.js           # Sintetizador de audio ambiental (Web Audio API)
     ├── tree-renderer.js          # Motor gráfico SVG del Árbol de Constancia
     ├── app.js                    # Controlador ligero de eventos de entrada

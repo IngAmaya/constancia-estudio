@@ -17,7 +17,7 @@ function createMainWindow(projectRoot) {
     minHeight: 640,
     frame: false,
     titleBarStyle: 'hidden',
-    backgroundColor: '#131716',
+    backgroundColor: '#0d1413',
     title: 'Raíces · Estudio & Constancia',
     icon: path.join(projectRoot, 'build', 'icon.png'),
     webPreferences: {

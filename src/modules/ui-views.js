@@ -59,12 +59,15 @@
     const lblPause = document.getElementById('mentalPauseLabel');
     if (metrics.isTodayRest) {
       btnPause.classList.add('rest-active');
-      lblPause.textContent = isManualPauseToday
-        ? 'Hoy: Pausa Mental Activa (Click para enfocar)'
-        : 'Hoy: Día de Descanso Programado';
+      btnPause.title = isManualPauseToday
+        ? 'Pausa Mental activa hoy. Haz clic para volver a enfocar.'
+        : 'Hoy es tu día de descanso programado. Haz clic para activar una Pausa Mental.';
+      lblPause.textContent = isManualPauseToday ? 'Pausa mental' : 'Descanso hoy';
     } else {
       btnPause.classList.remove('rest-active');
-      lblPause.textContent = 'Hoy: Día de Enfoque (Click para Pausa Mental)';
+      btnPause.title =
+        'Activar Pausa Mental hoy (protege tu árbol y tu racha sin culpa)';
+      lblPause.textContent = 'Enfoque hoy';
     }
 
     document.getElementById('sidebarStreak').textContent = metrics.streak;

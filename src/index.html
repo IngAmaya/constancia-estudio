@@ -13,7 +13,6 @@
       <span class="brand-logo">🌱</span>
       <span class="brand-title">Raíces</span>
       <span id="appVersionBadge" class="version-badge">v1.1.0</span>
-      <span class="brand-subtitle">Espacio de Constancia y Estudio</span>
     </div>
 
     <div class="titlebar-actions">
@@ -29,7 +28,7 @@
       <button id="btnPinWindow" class="icon-btn" title="Fijar ventana siempre encima de tus apuntes/PDFs">
         📌
       </button>
-      <button id="btnThemeToggle" class="icon-btn" title="Cambiar entre Modo Oscuro Acogedor y Modo Claro Pergamino">
+      <button id="btnThemeToggle" class="icon-btn" title="Cambiar entre modo oscuro y modo claro">
         ☀️
       </button>
       <div class="window-controls">
@@ -80,7 +79,7 @@
           <span class="streak-fire">🔥</span>
           <div>
             <div class="streak-count"><span id="sidebarStreak">0</span> días</div>
-            <div class="streak-caption">Racha saludable</div>
+            <div class="streak-caption">de racha saludable</div>
           </div>
         </div>
         <div class="health-mini-bar">
@@ -134,7 +133,7 @@
             <div class="card-header">
               <div>
                 <h2 class="card-title">Tu Árbol de Constancia</h2>
-                <p class="card-subtitle">Se nutre en tus días de enfoque y descansa contigo en tus días libres</p>
+                <p class="card-subtitle">Crece con tu enfoque y descansa contigo</p>
               </div>
               <span id="treeStateBadge" class="state-badge state-bloom">Floreciente</span>
             </div>
@@ -162,8 +161,8 @@
             <div class="schedule-box">
               <div class="schedule-header">
                 <div>
-                  <h3 class="schedule-title">🌿 Tus Días de Enfoque Semanal</h3>
-                  <p class="schedule-desc">Los días desmarcados son <strong>Días de Descanso</strong>: tu árbol no se marchita ni pierdes racha.</p>
+                  <h3 class="schedule-title">🌿 Tus días de enfoque</h3>
+                  <p class="schedule-desc">Los días 🌙 son de <strong>descanso</strong>: tu árbol no se marchita ni pierdes racha.</p>
                 </div>
               </div>
               <div id="weekDaysSelector" class="weekdays-row">
@@ -172,15 +171,17 @@
             </div>
 
             <!-- Previsualizador opcional de estados del árbol -->
-            <div class="tree-preview-bar">
-              <span>Ver estados del árbol:</span>
-              <button class="preview-chip active" data-preview="auto">Real (Automático)</button>
-              <button class="preview-chip" data-preview="bloom">🌸 Floreciente</button>
-              <button class="preview-chip" data-preview="healthy">🌳 Sano</button>
-              <button class="preview-chip" data-preview="thirsty">🍂 Sediento</button>
-              <button class="preview-chip" data-preview="wilted">🥀 Marchito</button>
-              <button class="preview-chip" data-preview="rest">🌙 Descanso</button>
-            </div>
+            <details class="tree-preview-bar">
+              <summary>Ver los estados del árbol</summary>
+              <div class="preview-chips">
+                <button class="preview-chip active" data-preview="auto">Real (automático)</button>
+                <button class="preview-chip" data-preview="bloom">🌸 Floreciente</button>
+                <button class="preview-chip" data-preview="healthy">🌳 Sano</button>
+                <button class="preview-chip" data-preview="thirsty">🍂 Sediento</button>
+                <button class="preview-chip" data-preview="wilted">🥀 Marchito</button>
+                <button class="preview-chip" data-preview="rest">🌙 Descanso</button>
+              </div>
+            </details>
           </div>
 
           <!-- Columna Derecha: Reloj de Enfoque y Actividad Seleccionada -->
@@ -188,7 +189,7 @@
             <div class="card-header">
               <div>
                 <h2 class="card-title">Reloj de Concentración</h2>
-                <p class="card-subtitle">Elige en qué concentrarte hoy y cultiva tu avance</p>
+                <p class="card-subtitle">Elige en qué concentrarte y cultiva tu avance</p>
               </div>
               <button id="btnQuickNewActivity" class="btn-ghost btn-sm">+ Nueva entrega</button>
             </div>
@@ -196,11 +197,11 @@
             <!-- Selectores de Materia y Actividad -->
             <div class="focus-selectors">
               <div class="form-group">
-                <label for="timerSubjectSelect">📂 Carpeta de Materia</label>
+                <label for="timerSubjectSelect">📂 Materia</label>
                 <select id="timerSubjectSelect" class="input-select"></select>
               </div>
               <div class="form-group">
-                <label for="timerTaskSelect">🎯 Examen o Proyecto en que concentrarte</label>
+                <label for="timerTaskSelect">🎯 Examen o proyecto</label>
                 <select id="timerTaskSelect" class="input-select"></select>
               </div>
             </div>
@@ -228,22 +229,15 @@
               <button id="btnApplyCustomMinutes" class="btn-secondary btn-sm">Aplicar</button>
             </div>
 
-            <!-- Descanso entre sesiones -->
-            <div class="break-row">
-              <label for="breakMinutesSelect">☕ Descanso entre sesiones</label>
-              <select id="breakMinutesSelect" class="input-select">
-                <option value="0">Sin descanso</option>
-                <option value="5">5 min</option>
-                <option value="10">10 min</option>
-                <option value="15">15 min</option>
-                <option value="20">20 min</option>
-                <option value="30">30 min</option>
-              </select>
-            </div>
-
             <!-- Reloj Circular -->
             <div class="timer-ring-wrapper">
               <svg class="timer-ring-svg" viewBox="0 0 220 220">
+                <defs>
+                  <linearGradient id="timerRingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#5eead4" />
+                    <stop offset="100%" stop-color="#34d399" />
+                  </linearGradient>
+                </defs>
                 <circle class="timer-ring-bg" cx="110" cy="110" r="96"></circle>
                 <circle id="timerRingProgress" class="timer-ring-fg" cx="110" cy="110" r="96"></circle>
               </svg>
@@ -262,7 +256,20 @@
               <button id="btnTimerSkipBreak" class="btn-secondary hidden" title="Saltar el descanso y volver a enfocar">
                 ⏭ Saltar descanso
               </button>
-              <button id="btnTimerReset" class="btn-ghost" title="Reiniciar reloj">↺</button>
+              <button id="btnTimerReset" class="btn-ghost btn-icon" title="Reiniciar reloj">↺</button>
+            </div>
+
+            <!-- Descanso entre sesiones -->
+            <div class="break-row">
+              <label for="breakMinutesSelect">☕ Descanso entre sesiones</label>
+              <select id="breakMinutesSelect" class="input-select">
+                <option value="0">Sin descanso</option>
+                <option value="5">5 min</option>
+                <option value="10">10 min</option>
+                <option value="15">15 min</option>
+                <option value="20">20 min</option>
+                <option value="30">30 min</option>
+              </select>
             </div>
 
             <!-- Temario / Subtareas de la actividad seleccionada en vivo -->
