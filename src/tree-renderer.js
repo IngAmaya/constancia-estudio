@@ -1,4 +1,4 @@
-// Renderizador visual del Árbol de Constancia (SVG Dinámico + Estados emocionales y de salud)
+// Renderizador visual del Árbol de Constancia · Edición Navidad (SVG Dinámico + Estados emocionales y de salud)
 window.TreeRenderer = {
   getTreeStateInfo(health, isRestDay, previewOverride = null) {
     const mode = previewOverride || (isRestDay ? 'rest' : this.healthToState(health));
@@ -6,88 +6,103 @@ window.TreeRenderer = {
     const states = {
       bloom: {
         id: 'bloom',
-        label: 'Floreciente',
+        label: 'Navidad Radiante',
         badgeClass: 'state-bloom',
-        message: '¡Tu constancia está dando frutos! El árbol rebosa de vida y flores.',
-        skyGradient: ['#132a23', '#1e4235'],
-        auraColor: 'rgba(110, 231, 183, 0.22)',
-        trunkColor: '#6b4c3b',
-        leafPrimary: '#34d399',
-        leafSecondary: '#10b981',
-        leafAccent: '#6ee7b7',
-        groundColor: '#1f3a2e',
-        showBlossoms: true,
-        showFireflies: true,
-        showFallingLeaves: false,
-        canopyScale: 1
+        message: '¡Tu constancia ilumina la Navidad! Tu pino brilla con estrella, luces y regalos.',
+        skyGradient: ['#0b1d1b', '#173830'],
+        auraColor: 'rgba(251, 191, 36, 0.24)',
+        trunkColor: '#6b4226',
+        leafPrimary: '#16a34a',
+        leafSecondary: '#15803d',
+        leafAccent: '#22c55e',
+        groundColor: '#1b352c',
+        snowColor: '#eef6f8',
+        showOrnaments: true,
+        showLights: true,
+        showStar: true,
+        showGifts: true,
+        showSnow: true,
+        showFallingNeedles: false
       },
       healthy: {
         id: 'healthy',
-        label: 'Sano y Activo',
+        label: 'Pino Sano y Festivo',
         badgeClass: 'state-healthy',
-        message: 'Tus raíces están firmes. Una sesión hoy mantendrá tu árbol radiante.',
-        skyGradient: ['#162621', '#213830'],
-        auraColor: 'rgba(74, 222, 128, 0.14)',
-        trunkColor: '#694b3c',
-        leafPrimary: '#2fb37d',
-        leafSecondary: '#238c62',
-        leafAccent: '#52cfa0',
-        groundColor: '#1d3329',
-        showBlossoms: false,
-        showFireflies: true,
-        showFallingLeaves: false,
-        canopyScale: 0.95
+        message: 'Tus raíces están firmes bajo la nieve. Una sesión hoy mantendrá las luces encendidas.',
+        skyGradient: ['#0f1f1c', '#1b352d'],
+        auraColor: 'rgba(52, 211, 153, 0.16)',
+        trunkColor: '#69432a',
+        leafPrimary: '#15803d',
+        leafSecondary: '#166534',
+        leafAccent: '#22c55e',
+        groundColor: '#1a3028',
+        snowColor: '#e2eef2',
+        showOrnaments: true,
+        showLights: false,
+        showStar: true,
+        showGifts: true,
+        showSnow: true,
+        showFallingNeedles: false
       },
       thirsty: {
         id: 'thirsty',
-        label: 'Sediento (1 día pendiente)',
+        label: 'Pino Apagado (1 día pendiente)',
         badgeClass: 'state-thirsty',
-        message: 'Las hojas empiezan a tornarse ámbar. Dedica 25 min hoy para devolverle su verdor.',
-        skyGradient: ['#282119', '#382c1e'],
-        auraColor: 'rgba(245, 158, 11, 0.15)',
-        trunkColor: '#5c4338',
-        leafPrimary: '#d97706',
-        leafSecondary: '#b45309',
-        leafAccent: '#f59e0b',
-        groundColor: '#2d251b',
-        showBlossoms: false,
-        showFireflies: false,
-        showFallingLeaves: true,
-        canopyScale: 0.86
+        message: 'Las luces de tu árbol se atenúan y las ramas pierden vigor. Dedica 25 min hoy para encenderlo.',
+        skyGradient: ['#231d18', '#33281d'],
+        auraColor: 'rgba(245, 158, 11, 0.14)',
+        trunkColor: '#5c3d2e',
+        leafPrimary: '#85642d',
+        leafSecondary: '#6b4f21',
+        leafAccent: '#a17a36',
+        groundColor: '#29221a',
+        snowColor: '#cbd5e1',
+        showOrnaments: false,
+        showLights: false,
+        showStar: false,
+        showGifts: false,
+        showSnow: false,
+        showFallingNeedles: true
       },
       wilted: {
         id: 'wilted',
         label: 'Marchito · Listo para renacer',
         badgeClass: 'state-wilted',
-        message: 'Ha pasado tiempo sin riego en días de enfoque, pero las raíces siguen vivas. ¡Una sesión hoy lo hará brotar de nuevo!',
-        skyGradient: ['#231d1e', '#2f2628'],
+        message: 'El frío apagó las ramas, pero las raíces siguen vivas. ¡Una sesión hoy encenderá de nuevo tu Navidad!',
+        skyGradient: ['#1f1a1b', '#2b2325'],
         auraColor: 'rgba(156, 163, 175, 0.08)',
-        trunkColor: '#4b3b34',
-        leafPrimary: '#785a46',
-        leafSecondary: '#5c4435',
-        leafAccent: '#94725b',
-        groundColor: '#26201d',
-        showBlossoms: false,
-        showFireflies: false,
-        showFallingLeaves: true,
-        canopyScale: 0.55
+        trunkColor: '#4b372e',
+        leafPrimary: '#635042',
+        leafSecondary: '#4c3d32',
+        leafAccent: '#786252',
+        groundColor: '#241e1c',
+        snowColor: '#94a3b8',
+        showOrnaments: false,
+        showLights: false,
+        showStar: false,
+        showGifts: false,
+        showSnow: false,
+        showFallingNeedles: true
       },
       rest: {
         id: 'rest',
-        label: 'Día de Descanso Protegido',
+        label: 'Noche de Paz (Descanso)',
         badgeClass: 'state-rest',
-        message: 'Hoy es tu día de descanso programado. Tu árbol duerme bajo las estrellas sin perder salud. Descansar también es avanzar.',
-        skyGradient: ['#131829', '#1f2742'],
-        auraColor: 'rgba(165, 180, 252, 0.20)',
-        trunkColor: '#5a453c',
-        leafPrimary: '#389e83',
-        leafSecondary: '#297a66',
-        leafAccent: '#818cf8',
-        groundColor: '#192236',
-        showBlossoms: false,
-        showFireflies: true,
-        showFallingLeaves: false,
-        canopyScale: 0.96
+        message: 'Hoy es tu día de descanso programado. Tu árbol descansa en Nochebuena sin perder salud.',
+        skyGradient: ['#0d1326', '#182344'],
+        auraColor: 'rgba(253, 224, 71, 0.18)',
+        trunkColor: '#5a3d2e',
+        leafPrimary: '#15803d',
+        leafSecondary: '#14532d',
+        leafAccent: '#34d399',
+        groundColor: '#162038',
+        snowColor: '#e0e7ff',
+        showOrnaments: true,
+        showLights: true,
+        showStar: true,
+        showGifts: true,
+        showSnow: true,
+        showFallingNeedles: false
       }
     };
 
@@ -106,105 +121,187 @@ window.TreeRenderer = {
     const isRest = stateInfo.id === 'rest';
     const isThirsty = stateInfo.id === 'thirsty';
 
-    const starsMarkup = isRest
+    const starsAndMoonMarkup = isRest
       ? `
         <g class="stars-group">
-          <circle cx="70" cy="55" r="1.5" fill="#e0e7ff" opacity="0.8" />
-          <circle cx="130" cy="38" r="2" fill="#c7d2fe" opacity="0.9" />
-          <circle cx="290" cy="45" r="1.5" fill="#e0e7ff" opacity="0.7" />
-          <circle cx="340" cy="80" r="1.8" fill="#c7d2fe" opacity="0.85" />
-          <circle cx="85" cy="115" r="1.2" fill="#e0e7ff" opacity="0.6" />
-          <!-- Luna Creciente -->
-          <path d="M310 42 A22 22 0 1 0 335 72 A17 17 0 1 1 310 42 Z" fill="#fef08a" opacity="0.92" />
+          <circle cx="65" cy="52" r="1.6" fill="#e0e7ff" opacity="0.85" />
+          <circle cx="125" cy="36" r="2" fill="#fef08a" opacity="0.9" />
+          <circle cx="285" cy="44" r="1.5" fill="#e0e7ff" opacity="0.75" />
+          <circle cx="342" cy="82" r="1.8" fill="#c7d2fe" opacity="0.85" />
+          <circle cx="88" cy="112" r="1.3" fill="#e0e7ff" opacity="0.65" />
+          <!-- Luna Creciente de Nochebuena -->
+          <path d="M312 40 A21 21 0 1 0 336 69 A16 16 0 1 1 312 40 Z" fill="#fef08a" opacity="0.95" />
+        </g>
+      `
+      : `
+        <g class="stars-group">
+          <circle cx="72" cy="48" r="1.3" fill="#fef9c3" opacity="0.55" />
+          <circle cx="328" cy="54" r="1.5" fill="#fef9c3" opacity="0.6" />
+          <circle cx="288" cy="34" r="1.1" fill="#e2e8f0" opacity="0.45" />
+          <circle cx="115" cy="75" r="1.1" fill="#e2e8f0" opacity="0.4" />
+        </g>
+      `;
+
+    const snowMarkup = stateInfo.showSnow
+      ? `
+        <g class="snow-particles">
+          <circle cx="85" cy="90" r="2.2" fill="#ffffff" opacity="0.75" class="firefly ff1" />
+          <circle cx="145" cy="58" r="1.8" fill="#ffffff" opacity="0.65" class="firefly ff2" />
+          <circle cx="268" cy="72" r="2.4" fill="#ffffff" opacity="0.8" class="firefly ff3" />
+          <circle cx="315" cy="148" r="2" fill="#ffffff" opacity="0.6" class="firefly ff4" />
+          <circle cx="108" cy="185" r="2.1" fill="#ffffff" opacity="0.7" class="firefly ff2" />
+          <circle cx="290" cy="198" r="1.7" fill="#ffffff" opacity="0.6" class="firefly ff1" />
         </g>
       `
       : '';
 
-    const focusRainMarkup = isTimerRunning
+    const focusMagicMarkup = isTimerRunning
       ? `
         <g class="nourish-droplets">
-          <circle cx="170" cy="70" r="3" fill="#6ee7b7" class="droplet d1" />
-          <circle cx="205" cy="55" r="3.5" fill="#34d399" class="droplet d2" />
-          <circle cx="235" cy="72" r="3" fill="#a7f3d0" class="droplet d3" />
+          <circle cx="170" cy="68" r="3.2" fill="#fde047" class="droplet d1" />
+          <circle cx="202" cy="48" r="3.5" fill="#6ee7b7" class="droplet d2" />
+          <circle cx="234" cy="70" r="3" fill="#fca5a5" class="droplet d3" />
         </g>
       `
       : '';
 
     const canopyMarkup = isWilted
       ? `
-        <!-- Copa marchita con pocos brotes esperando riego -->
+        <!-- Pino marchito con pocas ramas secas y un brote verde navideño -->
         <g class="tree-canopy wilted-canopy">
-          <ellipse cx="145" cy="148" rx="22" ry="13" fill="${stateInfo.leafSecondary}" opacity="0.55" />
-          <ellipse cx="255" cy="145" rx="20" ry="12" fill="${stateInfo.leafPrimary}" opacity="0.55" />
-          <ellipse cx="200" cy="112" rx="26" ry="15" fill="${stateInfo.leafPrimary}" opacity="0.6" />
-          <!-- Pequeño brote verde de esperanza -->
-          <path d="M200 96 C203 86, 214 86, 212 95 C210 100, 202 99, 200 96 Z" fill="#34d399" />
+          <path d="M200 104 L165 162 L235 162 Z" fill="${stateInfo.leafSecondary}" opacity="0.58" />
+          <path d="M200 138 L142 208 L258 208 Z" fill="${stateInfo.leafPrimary}" opacity="0.52" />
+          <path d="M200 174 L126 238 L274 238 Z" fill="${stateInfo.leafSecondary}" opacity="0.48" />
+          <!-- Pequeño brote verde de esperanza en la punta -->
+          <path d="M200 98 C203 87, 214 87, 211 97 C209 102, 202 101, 200 98 Z" fill="#22c55e" />
         </g>
       `
       : `
-        <!-- Copa frondosa animada -->
+        <!-- Pino navideño frondoso por niveles -->
         <g class="tree-canopy sway-slow">
-          <circle cx="145" cy="150" r="44" fill="${stateInfo.leafSecondary}" />
-          <circle cx="255" cy="148" r="44" fill="${stateInfo.leafSecondary}" />
-          <circle cx="170" cy="112" r="48" fill="${stateInfo.leafPrimary}" />
-          <circle cx="232" cy="114" r="46" fill="${stateInfo.leafPrimary}" />
-          <circle cx="200" cy="92" r="52" fill="${stateInfo.leafAccent}" opacity="0.88" />
-          <circle cx="135" cy="135" r="32" fill="${stateInfo.leafPrimary}" opacity="0.9" />
-          <circle cx="265" cy="135" r="32" fill="${stateInfo.leafPrimary}" opacity="0.9" />
-          <ellipse cx="200" cy="145" rx="68" ry="36" fill="${stateInfo.leafPrimary}" />
+          <!-- Nivel inferior -->
+          <path d="M200 132 L114 236 Q155 244 200 238 Q245 244 286 236 Z" fill="${stateInfo.leafSecondary}" />
+          <!-- Nivel medio-bajo -->
+          <path d="M200 100 L128 194 Q165 202 200 196 Q235 202 272 194 Z" fill="${stateInfo.leafPrimary}" />
+          <!-- Nivel medio-alto -->
+          <path d="M200 72 L144 150 Q172 157 200 152 Q228 157 256 150 Z" fill="${stateInfo.leafSecondary}" />
+          <!-- Nivel superior -->
+          <path d="M200 48 L163 108 Q182 114 200 110 Q218 114 237 108 Z" fill="${stateInfo.leafAccent}" />
+
+          ${
+            stateInfo.showSnow
+              ? `
+            <!-- Toques suaves de nieve en las puntas de las ramas -->
+            <path d="M200 48 L187 69 Q194 72 200 69 Q206 72 213 69 Z" fill="#ffffff" opacity="0.88" />
+            <path d="M144 150 Q154 146 164 152 L152 153 Z" fill="#ffffff" opacity="0.72" />
+            <path d="M256 150 Q246 146 236 152 L248 153 Z" fill="#ffffff" opacity="0.72" />
+            <path d="M114 236 Q128 230 140 238 L124 239 Z" fill="#ffffff" opacity="0.75" />
+            <path d="M286 236 Q272 230 260 238 L276 239 Z" fill="#ffffff" opacity="0.75" />
+          `
+              : ''
+          }
         </g>
       `;
 
-    const blossomsMarkup = stateInfo.showBlossoms
+    const starMarkup = stateInfo.showStar
       ? `
-        <g class="tree-blossoms sway-slow">
-          <!-- Flores rosadas y frutos dorados de constancia -->
-          <circle cx="162" cy="95" r="6" fill="#fda4af" />
-          <circle cx="162" cy="95" r="2.5" fill="#fef08a" />
-          <circle cx="228" cy="84" r="6.5" fill="#fda4af" />
-          <circle cx="228" cy="84" r="2.5" fill="#fef08a" />
-          <circle cx="195" cy="126" r="6" fill="#fda4af" />
-          <circle cx="195" cy="126" r="2.5" fill="#fef08a" />
-          <circle cx="140" cy="138" r="5.5" fill="#fbcfe8" />
-          <circle cx="255" cy="130" r="6" fill="#fda4af" />
-          <circle cx="255" cy="130" r="2.5" fill="#fef08a" />
-          <circle cx="182" cy="68" r="5" fill="#fbcfe8" />
+        <!-- Estrella navideña en la cima -->
+        <g class="christmas-star sway-slow">
+          <circle cx="200" cy="44" r="14" fill="rgba(250, 204, 21, 0.25)" class="aura-pulse" />
+          <polygon
+            points="200,29 204.2,38.5 214.5,39.5 206.8,46.2 209,56.2 200,51 191,56.2 193.2,46.2 185.5,39.5 195.8,38.5"
+            fill="#fbbf24"
+            stroke="#fef08a"
+            stroke-width="1"
+          />
         </g>
       `
       : '';
 
-    const fallingLeavesMarkup = stateInfo.showFallingLeaves
+    const ornamentsMarkup = stateInfo.showOrnaments
+      ? `
+        <!-- Esferas y guirnaldas navideñas -->
+        <g class="tree-ornaments sway-slow">
+          <!-- Guirnaldas -->
+          <path d="M174 102 Q200 116 226 102" stroke="#fbbf24" stroke-width="2" fill="none" opacity="0.85" />
+          <path d="M150 146 Q200 166 250 146" stroke="#f87171" stroke-width="2.2" fill="none" opacity="0.85" />
+          <path d="M132 190 Q200 215 268 190" stroke="#fbbf24" stroke-width="2.2" fill="none" opacity="0.85" />
+
+          <!-- Esferas rojas, doradas y menta -->
+          <circle cx="185" cy="92" r="4.5" fill="#ef4444" />
+          <circle cx="215" cy="96" r="4" fill="#fbbf24" />
+          <circle cx="168" cy="136" r="5" fill="#fbbf24" />
+          <circle cx="202" cy="128" r="5.2" fill="#ef4444" />
+          <circle cx="232" cy="138" r="4.8" fill="#5eead4" />
+          <circle cx="152" cy="178" r="5.5" fill="#ef4444" />
+          <circle cx="188" cy="172" r="5" fill="#5eead4" />
+          <circle cx="222" cy="176" r="5.5" fill="#fbbf24" />
+          <circle cx="250" cy="182" r="4.8" fill="#ef4444" />
+          <circle cx="142" cy="222" r="5.8" fill="#fbbf24" />
+          <circle cx="178" cy="216" r="5.5" fill="#ef4444" />
+          <circle cx="218" cy="220" r="5.8" fill="#5eead4" />
+          <circle cx="258" cy="222" r="5.5" fill="#ef4444" />
+        </g>
+      `
+      : '';
+
+    const lightsMarkup = stateInfo.showLights
+      ? `
+        <!-- Luces cálidas parpadeantes -->
+        <g class="tree-lights sway-slow">
+          <circle cx="195" cy="76" r="2.6" fill="#fef08a" class="xmas-light l1" />
+          <circle cx="210" cy="114" r="2.8" fill="#fca5a5" class="xmas-light l2" />
+          <circle cx="178" cy="152" r="2.8" fill="#fef08a" class="xmas-light l3" />
+          <circle cx="228" cy="156" r="2.6" fill="#6ee7b7" class="xmas-light l1" />
+          <circle cx="162" cy="198" r="3" fill="#fef08a" class="xmas-light l2" />
+          <circle cx="204" cy="198" r="3" fill="#fca5a5" class="xmas-light l3" />
+          <circle cx="242" cy="202" r="2.8" fill="#fef08a" class="xmas-light l1" />
+          <circle cx="160" cy="230" r="2.6" fill="#6ee7b7" class="xmas-light l3" />
+          <circle cx="238" cy="230" r="2.8" fill="#fef08a" class="xmas-light l2" />
+        </g>
+      `
+      : '';
+
+    const giftsMarkup = stateInfo.showGifts
+      ? `
+        <!-- Regalos navideños bajo el árbol -->
+        <g class="xmas-gifts">
+          <!-- Regalo rojo izquierdo -->
+          <rect x="138" y="253" width="26" height="20" rx="3" fill="#dc2626" />
+          <rect x="149" y="253" width="4" height="20" fill="#fbbf24" />
+          <rect x="138" y="261" width="26" height="4" fill="#fbbf24" />
+          <path d="M151 253 Q145 247 148 253 Q157 247 151 253 Z" fill="#fbbf24" />
+
+          <!-- Regalo dorado derecho -->
+          <rect x="234" y="256" width="24" height="18" rx="3" fill="#0f766e" />
+          <rect x="244" y="256" width="4" height="18" fill="#f87171" />
+          <rect x="234" y="263" width="24" height="4" fill="#f87171" />
+
+          <!-- Regalo pequeño -->
+          <rect x="214" y="262" width="16" height="13" rx="2.5" fill="#d97706" />
+          <rect x="220" y="262" width="3" height="13" fill="#fef3c7" />
+        </g>
+      `
+      : '';
+
+    const fallingNeedlesMarkup = stateInfo.showFallingNeedles
       ? `
         <g class="falling-leaves">
-          <ellipse cx="130" cy="215" rx="6" ry="3" transform="rotate(-25 130 215)" fill="#d97706" class="leaf-fall lf1" />
-          <ellipse cx="262" cy="205" rx="6" ry="3" transform="rotate(30 262 205)" fill="#b45309" class="leaf-fall lf2" />
-          <!-- Hojas secas en el suelo -->
-          <ellipse cx="145" cy="276" rx="7" ry="3" fill="#b45309" opacity="0.8" />
-          <ellipse cx="162" cy="281" rx="6" ry="2.5" fill="#92400e" opacity="0.75" />
-          <ellipse cx="248" cy="278" rx="7" ry="3" fill="#b45309" opacity="0.8" />
-          <ellipse cx="230" cy="283" rx="6" ry="2.5" fill="#78350f" opacity="0.7" />
-        </g>
-      `
-      : '';
-
-    const firefliesMarkup = stateInfo.showFireflies
-      ? `
-        <g class="fireflies">
-          <circle cx="115" cy="160" r="3" fill="#fde047" class="firefly ff1" />
-          <circle cx="285" cy="145" r="2.8" fill="#fef08a" class="firefly ff2" />
-          <circle cx="155" cy="70" r="2.5" fill="#a7f3d0" class="firefly ff3" />
-          <circle cx="248" cy="188" r="3.2" fill="#fde047" class="firefly ff4" />
+          <ellipse cx="130" cy="215" rx="6" ry="2.2" transform="rotate(-25 130 215)" fill="#b45309" class="leaf-fall lf1" />
+          <ellipse cx="262" cy="205" rx="6" ry="2.2" transform="rotate(30 262 205)" fill="#92400e" class="leaf-fall lf2" />
+          <ellipse cx="152" cy="274" rx="7" ry="2.5" fill="#92400e" opacity="0.75" />
+          <ellipse cx="246" cy="276" rx="7" ry="2.5" fill="#78350f" opacity="0.75" />
         </g>
       `
       : '';
 
     const lanternMarkup = isRest
       ? `
-        <!-- Farolillo cálido colgando de la rama en modo descanso -->
+        <!-- Farolillo cálido navideño en modo descanso -->
         <g class="cozy-lantern">
-          <line x1="246" y1="168" x2="246" y2="195" stroke="#9ca3af" stroke-width="1.5" />
-          <rect x="240" y="195" width="12" height="16" rx="4" fill="#fbbf24" stroke="#78350f" stroke-width="1.5" />
-          <circle cx="246" cy="203" r="14" fill="rgba(251, 191, 36, 0.25)" />
+          <line x1="258" y1="224" x2="258" y2="242" stroke="#cbd5e1" stroke-width="1.4" />
+          <rect x="252" y="242" width="12" height="15" rx="3.5" fill="#fbbf24" stroke="#78350f" stroke-width="1.4" />
+          <circle cx="258" cy="249" r="14" fill="rgba(251, 191, 36, 0.25)" />
         </g>
       `
       : '';
@@ -222,45 +319,35 @@ window.TreeRenderer = {
           </radialGradient>
         </defs>
 
-        <!-- Fondo de cielo -->
+        <!-- Cielo invernal -->
         <rect x="0" y="0" width="400" height="310" rx="18" fill="url(#skyGrad)" />
 
-        <!-- Aura de energía -->
+        <!-- Aura navideña -->
         <circle cx="200" cy="140" r="135" fill="url(#auraGrad)" class="aura-pulse" />
 
-        ${starsMarkup}
+        ${starsAndMoonMarkup}
 
-        <!-- Colinas lejanas -->
-        <path d="M0 265 Q105 235 220 262 T400 255 L400 310 L0 310 Z" fill="${stateInfo.groundColor}" opacity="0.55" />
+        <!-- Colinas nevadas lejanas -->
+        <path d="M0 264 Q105 236 220 260 T400 254 L400 310 L0 310 Z" fill="${stateInfo.groundColor}" opacity="0.65" />
 
-        <!-- Suelo e isla del árbol -->
+        <!-- Suelo e isla invernal -->
         <ellipse cx="200" cy="278" rx="145" ry="24" fill="${stateInfo.groundColor}" />
-        <ellipse cx="200" cy="275" rx="110" ry="15" fill="${isWilted || isThirsty ? '#3b2f26' : '#264637'}" />
+        <ellipse cx="200" cy="274" rx="115" ry="16" fill="${isWilted || isThirsty ? '#3b2f26' : stateInfo.snowColor}" opacity="${isWilted || isThirsty ? '0.85' : '0.9'}" />
 
-        <!-- Raíces y tronco orgánico -->
+        <!-- Tronco del pino -->
         <g class="tree-trunk">
-          <!-- Raíces -->
-          <path d="M188 265 Q165 278 145 278" stroke="${stateInfo.trunkColor}" stroke-width="7" stroke-linecap="round" fill="none" />
-          <path d="M212 265 Q235 278 258 277" stroke="${stateInfo.trunkColor}" stroke-width="7" stroke-linecap="round" fill="none" />
-          <path d="M200 267 Q200 280 185 283" stroke="${stateInfo.trunkColor}" stroke-width="5" stroke-linecap="round" fill="none" />
-
-          <!-- Tronco principal -->
-          <path d="M184 270 Q190 215 188 165 L212 165 Q210 215 216 270 Z" fill="${stateInfo.trunkColor}" />
-
-          <!-- Ramas principales -->
-          <path d="M194 185 Q165 162 142 146" stroke="${stateInfo.trunkColor}" stroke-width="10" stroke-linecap="round" fill="none" />
-          <path d="M206 182 Q235 160 256 145" stroke="${stateInfo.trunkColor}" stroke-width="10" stroke-linecap="round" fill="none" />
-          <path d="M198 170 Q182 135 170 112" stroke="${stateInfo.trunkColor}" stroke-width="8" stroke-linecap="round" fill="none" />
-          <path d="M203 170 Q218 135 230 114" stroke="${stateInfo.trunkColor}" stroke-width="8" stroke-linecap="round" fill="none" />
-          <path d="M200 165 L200 105" stroke="${stateInfo.trunkColor}" stroke-width="7" stroke-linecap="round" fill="none" />
+          <rect x="188" y="232" width="24" height="40" rx="4" fill="${stateInfo.trunkColor}" />
         </g>
 
         ${canopyMarkup}
-        ${blossomsMarkup}
+        ${ornamentsMarkup}
+        ${lightsMarkup}
+        ${starMarkup}
+        ${giftsMarkup}
         ${lanternMarkup}
-        ${fallingLeavesMarkup}
-        ${firefliesMarkup}
-        ${focusRainMarkup}
+        ${fallingNeedlesMarkup}
+        ${snowMarkup}
+        ${focusMagicMarkup}
       </svg>
     `;
   }

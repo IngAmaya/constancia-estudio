@@ -1,6 +1,6 @@
 /* ==========================================================================
-   Raíces · Sistema de diseño
-   Modo oscuro "Bosque nocturno" · Modo claro "Mañana fresca"
+   Raíces · Sistema de diseño · Edición Navidad
+   Modo oscuro "Nochebuena Invernal" · Modo claro "Blanca Navidad"
    ========================================================================== */
 
 :root {
@@ -13,57 +13,63 @@
 }
 
 :root[data-theme="dark"] {
-  --bg-app: #0d1413;
-  --bg-app-glow: radial-gradient(900px 500px at 85% -10%, rgba(45, 212, 191, 0.09), transparent 60%),
-    radial-gradient(700px 420px at -5% 105%, rgba(52, 211, 153, 0.07), transparent 60%);
-  --bg-sidebar: #101918;
-  --bg-card: #152120;
-  --bg-card-hover: #1a2928;
-  --bg-elevated: #1e2d2b;
-  --bg-input: #0f1817;
-  --border-subtle: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --border-focus: #4ade9c;
-  --text-primary: #eef6f3;
-  --text-secondary: #9db3ac;
-  --text-muted: #688078;
-  --accent-primary: #4ade9c;
-  --accent-primary-hover: #34d399;
-  --accent-primary-soft: rgba(74, 222, 156, 0.13);
-  --accent-primary-ring: rgba(74, 222, 156, 0.28);
-  --accent-on-primary: #052016;
-  --accent-gradient: linear-gradient(135deg, #5eead4 0%, #4ade9c 100%);
+  --bg-app: #0c1411;
+  --bg-app-glow: radial-gradient(920px 520px at 88% -8%, rgba(239, 68, 68, 0.10), transparent 58%),
+    radial-gradient(760px 460px at 50% -12%, rgba(251, 191, 36, 0.07), transparent 55%),
+    radial-gradient(700px 420px at -5% 105%, rgba(34, 197, 94, 0.09), transparent 60%);
+  --bg-sidebar: #0f1915;
+  --bg-card: #14211c;
+  --bg-card-hover: #192923;
+  --bg-elevated: #1c2d26;
+  --bg-input: #0e1714;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(251, 191, 36, 0.22);
+  --border-focus: #34d399;
+  --text-primary: #f2f7f4;
+  --text-secondary: #a1b8ad;
+  --text-muted: #6c8479;
+  --accent-primary: #34d399;
+  --accent-primary-hover: #22c55e;
+  --accent-primary-soft: rgba(52, 211, 153, 0.13);
+  --accent-primary-ring: rgba(52, 211, 153, 0.30);
+  --accent-on-primary: #052014;
+  --accent-gradient: linear-gradient(135deg, #22c55e 0%, #10b981 55%, #059669 100%);
+  --accent-festive: #ef4444;
+  --accent-gold: #fbbf24;
   --accent-warm: #fbbf24;
-  --accent-warm-soft: rgba(251, 191, 36, 0.14);
+  --accent-warm-soft: rgba(251, 191, 36, 0.15);
   --accent-rest: #a5b4fc;
   --accent-rest-soft: rgba(129, 140, 248, 0.16);
   --accent-danger: #f87171;
-  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 32px rgba(0, 0, 0, 0.28);
-  --shadow-pop: 0 24px 60px rgba(0, 0, 0, 0.5);
-  --scrim: rgba(4, 9, 8, 0.66);
+  --shadow-card: 0 1px 0 rgba(251, 191, 36, 0.05) inset, 0 12px 32px rgba(0, 0, 0, 0.32);
+  --shadow-pop: 0 24px 60px rgba(0, 0, 0, 0.52);
+  --scrim: rgba(4, 9, 8, 0.68);
 }
 
 :root[data-theme="light"] {
-  --bg-app: #f3f8f6;
-  --bg-app-glow: radial-gradient(900px 500px at 85% -10%, rgba(45, 212, 191, 0.16), transparent 60%),
-    radial-gradient(700px 420px at -5% 105%, rgba(134, 239, 172, 0.2), transparent 60%);
+  --bg-app: #f6f9f7;
+  --bg-app-glow: radial-gradient(900px 500px at 88% -8%, rgba(220, 38, 38, 0.09), transparent 58%),
+    radial-gradient(760px 440px at 45% -12%, rgba(245, 158, 11, 0.08), transparent 55%),
+    radial-gradient(700px 420px at -5% 105%, rgba(22, 163, 74, 0.12), transparent 60%);
   --bg-sidebar: #ffffff;
   --bg-card: #ffffff;
-  --bg-card-hover: #f6faf8;
-  --bg-elevated: #e9f2ef;
-  --bg-input: #f2f7f5;
+  --bg-card-hover: #f7faf8;
+  --bg-elevated: #ebf3ee;
+  --bg-input: #f2f7f4;
   --border-subtle: rgba(16, 52, 42, 0.09);
-  --border-strong: rgba(16, 52, 42, 0.18);
-  --border-focus: #0f9f6e;
-  --text-primary: #12251f;
-  --text-secondary: #46605a;
-  --text-muted: #7b928b;
-  --accent-primary: #0f9f6e;
-  --accent-primary-hover: #0b8559;
-  --accent-primary-soft: rgba(15, 159, 110, 0.1);
-  --accent-primary-ring: rgba(15, 159, 110, 0.24);
+  --border-strong: rgba(220, 38, 38, 0.22);
+  --border-focus: #15803d;
+  --text-primary: #14261e;
+  --text-secondary: #486157;
+  --text-muted: #789086;
+  --accent-primary: #16a34a;
+  --accent-primary-hover: #15803d;
+  --accent-primary-soft: rgba(22, 163, 74, 0.10);
+  --accent-primary-ring: rgba(22, 163, 74, 0.24);
   --accent-on-primary: #ffffff;
-  --accent-gradient: linear-gradient(135deg, #14b88a 0%, #0f9f6e 100%);
+  --accent-gradient: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+  --accent-festive: #dc2626;
+  --accent-gold: #d97706;
   --accent-warm: #c26a05;
   --accent-warm-soft: rgba(217, 119, 6, 0.12);
   --accent-rest: #4f46e5;
@@ -131,14 +137,26 @@ button {
 
 /* ---------- Barra de título ---------- */
 .titlebar {
-  height: 42px;
+  position: relative;
+  height: 44px;
   background: var(--bg-sidebar);
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 8px 0 16px;
+  padding: 2px 8px 0 16px;
   flex-shrink: 0;
+}
+
+.titlebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #dc2626 0%, #fbbf24 50%, #16a34a 100%);
+  pointer-events: none;
 }
 
 .titlebar-drag {
@@ -345,7 +363,7 @@ button {
   bottom: 10px;
   width: 4px;
   border-radius: 0 4px 4px 0;
-  background: var(--accent-gradient);
+  background: linear-gradient(180deg, var(--accent-festive), var(--accent-gold));
 }
 
 .nav-icon {
@@ -378,7 +396,7 @@ button {
 
 .streak-card {
   margin-top: auto;
-  background: linear-gradient(160deg, var(--accent-primary-soft), transparent 70%), var(--bg-card);
+  background: linear-gradient(155deg, rgba(239, 68, 68, 0.08), rgba(251, 191, 36, 0.06) 45%, transparent 78%), var(--bg-card);
 }
 
 .streak-header {
@@ -798,6 +816,18 @@ button {
   0% { transform: translateY(-10px); opacity: 0; }
   40% { opacity: 0.9; }
   100% { transform: translateY(35px); opacity: 0; }
+}
+
+/* Luces navideñas del árbol */
+.xmas-light {
+  animation: xmasTwinkle 2.2s ease-in-out infinite alternate;
+}
+.xmas-light.l2 { animation-delay: 0.7s; }
+.xmas-light.l3 { animation-delay: 1.4s; }
+
+@keyframes xmasTwinkle {
+  0% { opacity: 0.45; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1.12); }
 }
 
 .tree-overlay-metrics {
